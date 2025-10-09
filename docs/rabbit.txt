@@ -1,0 +1,621 @@
+如下是unity中Rabbit.cs代码。这是一个兔子prefab对象的代码。
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using Unity.VisualScripting;
+using UnityEngine;
+
+public class Rabbit : MonoBehaviour
+{
+
+    public Material maleMaterial;
+    public Material femaleMaterial;
+    /////////////////////////基本属性/////////////////////////////////
+    public int generation;  //属于第几代
+    public float simulationSpeedMultiplier; //仿真速度乘数，在Start()方法中GC脚本获取。
+    public float age; // 年龄
+    public bool isMale; // 性别
+    public float health; // 生命值
+    public float hunger; // 饥饿值
+    public float energy; // 能量值
+    public bool isAlive;    //是否活着  
+    public float reproductionCountdown; // 繁殖冷却倒计时数秒
+    public RabbitState currentState;
+
+    //私有变量 || 调试期间暂时定义为public
+    public float reproductAge;    //成熟年龄。在Start()中根据（成年年龄reproductAge = 成长速度growrate * 寿命LifeTime）计算
+    public float currentspeed; // 当前标准移动速度。通过CalculateSpeed()基于standardspeed生成,当前标准实际速度与年龄、能量有关。逃跑时速度X1.5
+    public float currentvalue;    //被吃掉能提供的营养. 基于standrdvalue，通过CalculateValue()计算。
+    public float currentHungerUpperlimit;     //当前年龄的最大饱腹度,Calculate_01()中依据当前年龄计算得出。 兔子幼年最大饱腹会降低，因而需要更频繁的进食。类似速度的算法。
+    public float currentEnergyUpperlimit;     //当前年龄的最大能量,Calculate_01()中依据当前年龄计算得出。 兔子幼年的最大能量会降低，因而需要更频繁的休息。
+    public float currentHungerThreshold; // 饥饿阈值  hungerThreshold = hungerDesireThreshold_factor * currentHungerUpperlimit
+    public float currentEnergyThreshold; // 能量阈值   energyThreshold = energyDesireThreshold_factor * currentEnergyUpperlimit
+    public int currentOffspring_number;    //在当前繁殖的话能够出生的后代数量，使用CalculateOffspring()计算
+
+    //To be used properties
+    //public bool isHealthy; // 健康状态
+
+    /////////////////////////遗传属性////////////////////////////////////
+    public float growrate;  //成长速度。 成年年龄reproductAge = 成长速度growrate * 寿命LifeTime。开始时可为0.2。可遗传，如果成熟太快，会造成后代出生时很虚弱（饥饿值，能量值很低）。
+    public float hungerDesireThreshold_factor; // 饥饿阈值因子/觅食积极性因子，是一个对于当前最大饱腹度的比例因子，低于此值时开始觅食.开始时可为0.6. 可遗传，决定了动物有多积极去获取食物。
+    public float energyDesireThreshold_factor; // 能量阈值因子/休息积极性因子，是一个对于最大能量的比例因子，也就是耐力，低于此值时开始休息.开始时可为0.6  可遗传，决定了动物的耐力。
+    public float LifeTime;    //寿命。后期遗传算法应加以限制
+    public float visionRange; // 视野范围，发现掠食者。后期遗传算法应加以限制
+    public float searchRadius;  // 觅食和饮水的范围；后期遗传算法应加以限制
+    public float standardspeed; //标准移动速度。后期遗传算法应加以限制。速度会直接参与乘以耗能速度，因而第一代兔子的初始速度不要设定太大。
+    public float standardvalue; //标准食用价值。后期遗传算法应加以限制
+    public float reproductionCooldownTime;  //繁殖冷却时间，代表着繁殖频度。后期遗传算法应加以限制
+    public int AvrBirthAmount;    //每次平均生育数量
+    public float sexBias;   //性别偏好。初始为0.5表示无偏好。越大表示越倾向出生female
+
+    public float flee_factor; //逃跑因子，决定发现掠食者后逃跑超出视野多远。默认1.5。可遗传。
+
+//////////////////////////一些固定属性/////////////////
+    private float HungerUpperLimit;     //最大饱腹度上限。 默认100. 不遗传。start()中需指定
+    private float EnergyUpperLimit;     //最大能量上限； 默认100. 不遗传。start()中需指定
+    private float age_consume_rate;      //生命流逝率，每秒流逝多少
+    private float hunger_consume_rate;   //标准（Idle状态下）饥饿速度。不遗传。start()中需指定
+    private float energy_consume_rate;   //标准（Idle状态下）疲劳速度。不遗传。start()中需指定
+    private float energy_recovery_rate;   //休息时每秒能量回复速度。不遗传。start()中需指定
+    private float minSpeed; //出生和年老时的最小速度。
+    private float minValue; //出生时的最小食用价值。
+    private float Birth_HungerUpperlimit_ratio;   //出生时最低的饥饿度，是一个相对于最大饱腹度上限HungerUpperLimit的比率值。
+    private float Birth_EnergyUpperlimit_ratio;   //出生时最低的能量值，是一个相对于最大能量上限EnergyUpperLimit的比率值。
+//////////////////////////////////////////////////
+    private Vector3 original_scale;
+    /// /////////////////////////
+
+
+    //引入其他游戏对象
+    public GameObject[] grass;
+    public GameObject[] predators;
+    public GameObject[] mates;
+    public GameObject sex_cube;
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        //需要在unity界面中指定两只初代先祖rabbit的属性：
+        //Generation
+        //age
+        //ismale
+        //health
+        //hunger
+        //energy
+        //isalive
+        //growrate——遗传
+        //HungerDesireThreshold_factor——遗传
+        //EnergyDesireThreshold_factor——遗传
+        //LifeTime——遗传
+        //visionrange——遗传
+        //searchradius——遗传
+        //standardspeed——遗传
+        //standvalue——遗传
+        //repoduction_cooldowntime——遗传
+        //avrbirthamount——遗传
+        //sexBias——遗传
+
+        //Time.fixedDeltaTime = 0.02f;    //设定FixedUpdate()函数的更新周期
+
+        original_scale = this.transform.localScale;     //记录初始缩放比例，以便后续根据年龄调整大小
+
+        reproductAge = growrate * LifeTime;    //成熟年龄 = 成长速度 * 寿命。但是这里隐藏了一个问题：进化过程中，物种可能会试图通过降低寿命来试图提前开展繁殖。因而必须让低龄繁殖和多繁殖付出生存代价。
+
+        reproductionCountdown = 0;
+        currentState = RabbitState.Idle;
+        
+        HungerUpperLimit = 100.0f;  //最大饥饿上限，这个值可以固定为100。
+        EnergyUpperLimit = 100.0f;  //最大饥饿上限，这个值可以固定为100。
+
+        age_consume_rate    = 0.1f;    //每秒增加多少年龄
+        hunger_consume_rate = 0.5f;     //每秒减少多少饱腹度
+        energy_consume_rate = 0.3f;     //每秒减少多少能量
+        energy_recovery_rate = 1.5f;    //休息时每秒恢复多少能量
+
+        minSpeed = 0.8f;    //最幼年和最老年时的速度。这里有一个问题：是否最小速度是否应该随standspeed变化？
+        minValue = 20.0f;   //最幼年时的食用价值
+
+        Birth_HungerUpperlimit_ratio = 0.3f;  //出生时最低饱腹度比率
+        Birth_EnergyUpperlimit_ratio = 0.3f;  //出生时最低能量值比率
+        
+        flee_factor = 1.5f; //逃跑因子，决定发现掠食者后逃跑超出视野多远。默认1.5。可遗传。
+
+        if (isMale)
+        {
+            sex_cube.GetComponent<Renderer>().material = maleMaterial;
+        }
+        else
+        {
+            sex_cube.GetComponent<Renderer>().material = femaleMaterial;
+        }
+
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        bool PreditorsFound = false;
+        float scaleMultiplier = age / (LifeTime * 0.5f);
+        scaleMultiplier = Mathf.Clamp(scaleMultiplier,0.25f,0.8f);
+        this.transform.localScale = original_scale * scaleMultiplier;
+         
+
+        simulationSpeedMultiplier = GameObject.FindGameObjectWithTag("gamecontrol").GetComponent<GC>().simulationSpeedMultiplier;
+        
+        float deltaTime = Time.deltaTime * simulationSpeedMultiplier;
+
+        age  += deltaTime * age_consume_rate;    //
+
+        currentHungerUpperlimit = Calculate_01(HungerUpperLimit, Birth_HungerUpperlimit_ratio * HungerUpperLimit,age,LifeTime);    //计算当前年龄下的饥饿度上限或能量上限。刚出生时，饱腹度上限为Birth_HungerUpperlimit_ratio*最大饱腹度上限。壮年及之后，饱腹度上限达到最大。
+        currentEnergyUpperlimit = Calculate_01(EnergyUpperLimit, Birth_EnergyUpperlimit_ratio * EnergyUpperLimit,age,LifeTime);    //计算当前年龄下的饥饿度上限或能量上限。
+
+        currentHungerThreshold = hungerDesireThreshold_factor * currentHungerUpperlimit; //饥饿临界值。为当前饱腹度上限*觅食积极性因子。
+        currentEnergyThreshold = energyDesireThreshold_factor * currentEnergyUpperlimit;    //能量临界值。为当前能量上限*休息积极性因子。
+
+
+        if (reproductionCountdown > 0 ){  //未成年时也倒数，这样一到繁殖年龄就可以繁殖
+            reproductionCountdown -= deltaTime;     //倒计时
+        }
+        currentspeed = CalculateSpeed(minSpeed);   //根据当前年龄和当前能量计算速度，壮年时达到standardspeed*energy，最小不能低于最幼年和最老年时的速度minSpeed。//后续注意：壮年的年龄受到寿命的影响
+        currentvalue = CalculateValue(minValue);   //根据年龄计算食用价值.最幼年时的食用价值为minValue，壮年时达到standardvalue。  //后续注意：壮年的年龄受到寿命的影响
+        currentOffspring_number = CalculateOffspring(LifeTime,reproductAge,AvrBirthAmount);     //计算后代数量。壮年时繁殖出生最多，年轻或年老时繁殖则出生少。未成熟不繁殖。   //后续注意：壮年的年龄受到寿命的影响
+
+        ///////////////////
+        ///////////////////
+        ///////////////////
+        //检查是否死亡
+        if (age >= LifeTime || hunger <= 0 || health <= 0)  //困是不会困死的
+        {
+            currentState = RabbitState.Dead;
+            isAlive = false;
+            //后期加入动画
+            Destroy(this.gameObject);
+            GameObject.FindGameObjectWithTag("gamecontrol").GetComponent<spy>().stat_aod(age);  //记录死亡年龄
+
+        }
+
+        // 检查掠食者_
+        
+        predators = GameObject.FindGameObjectsWithTag("Wolf");  //每次更新都重新获取一次掠食者列表
+        
+        // 默认没有掠食者
+        PreditorsFound = false;
+
+        foreach (GameObject predator in predators)  //遍历所有掠食者
+        {
+            if (predator == null) continue; //
+            float dd = Vector3.Distance(transform.position, predator.transform.position);
+            if (dd <= visionRange || (dd > visionRange && dd <= flee_factor * visionRange && currentState == RabbitState.Fleeing))   //如果在视野范围内发现掠食者，或者在视野外但是距离小于1.5倍视野且上次已经发现掠食者
+            {
+                PreditorsFound = true;
+                break; // 找到一个满足条件的掠食者即可，不需要继续检查
+            }
+        }
+        
+
+        float hungerPriority = (currentHungerThreshold - hunger) / currentHungerUpperlimit; // 饥饿紧急程度，越高表示越饿。    饥饿应该有个最大值，在口渴和能量需求不紧急的情况下，应优于Reproducing和idle状态，进入forage状态。
+        float energyPriority = (currentEnergyThreshold - energy) / currentEnergyUpperlimit; // 能量紧急程度，越高表示越需要休息
+
+
+        if (currentState == RabbitState.Resting && energy < currentEnergyUpperlimit){ //一旦进入睡眠状态，保证在睡眠完全充足之前继续睡。睡眠状态下，掠食者无法捕获。
+            currentState = RabbitState.Resting;
+        }else if(PreditorsFound)
+        {
+            currentState = RabbitState.Fleeing;
+
+        }else if(hunger < currentHungerThreshold || energy < currentEnergyThreshold){    
+            //如果饥饿和困有任一个达到阈值之下
+            if(hunger < currentHungerThreshold && hungerPriority >= energyPriority && energy > 0)
+            {    //饥饿优先级更高
+                currentState = RabbitState.Foraging;
+            }else if(energy < currentEnergyThreshold && energyPriority >= hungerPriority){
+                //休息优先级更高
+                currentState = RabbitState.Resting;
+            }
+
+        }else if(age > reproductAge && reproductionCountdown <= 0){ //如果不饿不渴不困，且具备繁育条件
+            currentState = RabbitState.Reproducing;         
+        
+        }else{
+            currentState = RabbitState.Idle;    //只有吃饱喝足睡够而且不具备繁殖条件才会进入idle状态
+        }
+
+        //Debug.Log("currentState: " + currentState);
+        //更新状态机
+        switch (currentState)
+        {
+            case RabbitState.Idle:
+                go_Idle();
+                break;
+            case RabbitState.Foraging:
+                go_Forage();
+                break;
+            case RabbitState.Fleeing:
+                go_Flee();
+                break;
+            case RabbitState.Resting:
+                go_Rest();  //在睡眠状态下，捕食者无法发现。
+                break;
+            case RabbitState.Reproducing:
+                go_Reproduce();
+                break;
+            case RabbitState.Dead:
+                //Dead();
+                break;
+        }
+
+
+        ///////////////////
+        ///////////////////
+        ///////////////////
+
+
+    }
+
+    void go_Idle()
+    {
+        float deltaTime = Time.deltaTime * simulationSpeedMultiplier;
+        // 更新饥饿值、能量值
+        hunger -= deltaTime * hunger_consume_rate;      //空闲状态下为标准耗能。是否让小兔子消耗更慢？考虑到小兔子运动需要的卡路里更小但是小兔子在长身体的消耗也不少，算了。
+        energy -= deltaTime * energy_consume_rate;
+    }
+
+    void go_Flee()
+    {
+        float deltaTime = Time.deltaTime * simulationSpeedMultiplier;
+
+        hunger -= deltaTime * hunger_consume_rate * currentspeed;       //逃跑状态下耗能。暂时不考虑更快的速度。
+        energy -= deltaTime * energy_consume_rate * currentspeed;
+
+        //predators = GameObject.FindGameObjectsWithTag("Wolf"); 
+        GameObject closestPredator = null;
+        float closestDistance = float.MaxValue;
+
+        // 遍历所有寻找最近的掠食者
+        foreach (GameObject p in predators)
+        {
+
+            float distance = Vector3.Distance(new Vector3(transform.position.x, 0, transform.position.z), new Vector3(p.transform.position.x, 0, p.transform.position.z));  //只计算垂水平距离
+
+            if (distance < closestDistance)
+            {
+                closestPredator = p;
+                closestDistance = distance;
+            }
+
+        }
+
+        // 如果找到了最近的掠食者
+        if (closestPredator != null)
+        {
+            EscapeFrom(closestPredator);
+        }
+        else
+        {
+            //如果没找到，也不进入idle状态，继续按照寻找食物的状态耗能
+
+
+        }
+
+    }
+    
+    void go_Forage()
+    {
+        SearchForFood();    //searchForFood()中已经包含了移动和进食的功能
+        // 更新饥饿值、能量值
+
+        float deltaTime = Time.deltaTime * simulationSpeedMultiplier;
+
+        hunger -= deltaTime * hunger_consume_rate * currentspeed;       //寻找状态下耗能. 这里有个问题：如果视野内没发现食物，是否应该按照寻找食物时的速度耗能？
+
+        energy -= deltaTime * energy_consume_rate * currentspeed; 
+
+
+    }
+
+
+    void SearchForFood()
+    {
+        grass = GameObject.FindGameObjectsWithTag("Grass");
+        GameObject closestFood = null;
+        float closestDistance = float.MaxValue;
+
+        // 遍历所有寻找最近的食物
+        foreach (GameObject g in grass)
+        {
+            //float distance = Vector3.Distance(transform.position, g.transform.position);
+
+            float distance = Vector3.Distance(new Vector3(transform.position.x, 0, transform.position.z), new Vector3(g.transform.position.x, 0, g.transform.position.z));  //只计算垂直位置
+
+            //本想增加判断如果过去吃草的话会不会进入逃跑状态，但是这样不符合现实，因为兔子没有到达草的位置的时候是不会发现掠食者的。
+
+
+            if (distance <= searchRadius)
+            {
+                if (distance < closestDistance)
+                {
+                    closestFood = g;
+                    closestDistance = distance;
+                }
+            }
+        }
+
+        // 如果找到了最近的食物
+        if (closestFood != null)
+        {
+           MoveTowards(closestFood);
+
+            // 如果到了食物的位置，进行进食
+            if (closestDistance < 0.5f)
+            {
+                Eatgrass(closestFood);
+                
+            }
+        }else{
+            //如果没找到，也不进入idle状态，继续按照寻找食物的状态耗能
+
+
+        }
+    }
+    void Eatgrass(GameObject food)
+    {
+        // 吃草
+        if(food.GetComponent<Grass>().currentvalue + hunger > currentHungerUpperlimit){
+            hunger = currentHungerUpperlimit;
+        }else{
+            hunger += food.GetComponent<Grass>().currentvalue;   //从草的value属性里得知吃掉得到的饱食度
+        }
+        
+        Destroy(food); // 吃完后草会消失
+    }
+
+
+    void go_Rest()
+    {
+        float deltaTime = Time.deltaTime * simulationSpeedMultiplier;
+        //
+        hunger -= deltaTime * hunger_consume_rate * 0.20f; //在不同状态下，应该不同
+        if(energy < currentEnergyUpperlimit){
+            
+            energy += deltaTime * energy_recovery_rate;
+        }else{
+            energy = currentEnergyUpperlimit;
+        }
+
+    }
+
+    void go_Reproduce() //寻找配偶的状态
+    {
+        //
+        SearchForMate();        //本程序中，雄兔和雌兔都会主动寻找对方，且任一方退出交配状态，双方立即停止互相寻找
+        float deltaTime = Time.deltaTime * simulationSpeedMultiplier;
+        hunger -= deltaTime * hunger_consume_rate * currentspeed; //在不同状态下，应该不同
+        energy -= deltaTime * energy_consume_rate * currentspeed; //在不同状态下，应该不同
+
+    }
+    void SearchForMate()
+    {
+        mates = GameObject.FindGameObjectsWithTag("Rabbit");
+        GameObject closestMate = null;
+        float closestDistance = float.MaxValue;
+
+        // 遍历所有寻找最近的配偶
+        foreach (GameObject w in mates)
+        {
+            float distance = Vector3.Distance(transform.position, w.transform.position);
+            //distance <= searchRadius  寻找配偶和饮水不受视野限制。动物们应该能记住或靠嗅觉得知配偶和水源的方向，因而不需判断是否在搜索范围或视野范围。
+            if ( (w.GetComponent<Rabbit>().isMale != isMale) && (w.GetComponent<Rabbit>().currentState == RabbitState.Reproducing) )    
+            {
+                if (distance < closestDistance)
+                {
+                    closestMate = w;
+                    closestDistance = distance;
+                }
+            }
+        }
+
+        // 如果找到了最近的配偶
+        if (closestMate != null)
+        {
+           MoveTowards(closestMate);
+
+            // 如果到了配偶的位置，进行繁殖
+            if (closestDistance < 1.0f && reproductionCountdown <= 0.0f)    //快速模拟时，有可能因translate步长过大，造成配偶双方总是错过，需注意观察。
+            {
+                //;
+                
+                if (isMale == false)
+                {   //母兔子才生育，公兔子跳过代码
+                    
+                    int i = currentOffspring_number;
+
+                    while (i > 0){
+                        GameObject.FindGameObjectWithTag("gamecontrol").GetComponent<GC>().CreateRabbitOffspring(closestMate,gameObject);
+                        //Debug.Log("Do it");
+                        i--;
+                    }
+
+                    reproductionCountdown = reproductionCooldownTime;   //倒计数复位.这里不需根据模拟速度调整，因为倒计时速度会随着模拟速度变化。
+                    closestMate.GetComponent<Rabbit>().reproductionCountdown = closestMate.GetComponent<Rabbit>().reproductionCooldownTime;      //对方倒计数复位
+
+                }
+
+            }
+        }else{
+            //如果没找到,什么也不做，相当于继续寻找的状态，只不过不移动
+
+
+        }
+    }
+
+    int CalculateOffspring(float lifespan, float maturityAge, int maxOffspring)
+    {
+        if (age <= maturityAge)
+        {
+            return 0;
+        }else if(age <= 0.5 * lifespan)
+        {
+            float slope = maxOffspring / (0.5f * lifespan);
+            int offspring = Mathf.RoundToInt(slope * age);
+            return Mathf.Max(0, offspring);     // + Random.Range(-1, 2);    //实际出生情况存在±1的偏差。
+        }else if (age > 0.5 * lifespan)
+        {
+            float slope = -maxOffspring / (0.5f * lifespan);
+            int offspring = Mathf.RoundToInt(maxOffspring + slope * (age - 0.5f * lifespan));
+            return Mathf.Max(0, offspring);     // + Random.Range(-1, 2);    //实际出生情况存在±1的偏差。
+        }else
+        {
+            return 0;
+        }
+    }
+
+    void MoveTowards(Vector3 targetPosition)
+    {
+        float deltaTime = Time.deltaTime * simulationSpeedMultiplier;
+        //朝向目标移动
+
+        Vector3 d = targetPosition - transform.position;
+        Vector3 direction;
+
+        if(d.sqrMagnitude > 0.0001f)
+        {
+            targetPosition.y = transform.position.y;
+
+            direction = (targetPosition - transform.position).normalized;
+            transform.Translate(direction * currentspeed * deltaTime, Space.World);
+            Quaternion targetRotation = Quaternion.LookRotation(direction);
+            transform.rotation = targetRotation;
+
+            //if(currentspeed * deltaTime <= 0) { Debug.LogError($"Invalid currentspeed: {currentspeed}, deltaTime:{deltaTime}"); }
+        }
+
+    }
+    void MoveTowards(GameObject target)
+    {
+        if (target != null)
+        {
+            MoveTowards(target.transform.position);
+
+        }
+            
+    }
+
+    void EscapeFrom(Vector3 targetPosition)
+    {
+        float deltaTime = Time.deltaTime * simulationSpeedMultiplier;
+
+        Vector3 d = transform.position - targetPosition;
+        Vector3 direction;
+
+        targetPosition.y = transform.position.y;
+
+        direction = (transform.position - targetPosition).normalized;
+        transform.Translate(direction * currentspeed * deltaTime, Space.World);
+        Quaternion targetRotation = Quaternion.LookRotation(direction);
+        transform.rotation = targetRotation;
+
+        
+    }
+    void EscapeFrom(GameObject target)
+    {
+        if (target != null)
+        {
+            EscapeFrom(target.transform.position);
+
+        }
+
+        ClampPositionToPlane();
+
+    }
+
+
+
+    float Calculate_01(float max, float min, float _age, float _maxage)   //计算当前年龄下的饥饿度上限或能量上限。
+    {
+        float _ot = 0.0f;
+        if(_age < 0.5*_maxage){
+            _ot = min + ( (max - min) / (0.5f * _maxage) ) * _age  ;  //年龄最小时为min,壮年时达到max
+        }else{
+            _ot = max;
+        }
+        
+        return _ot;
+
+    }
+
+
+    float CalculateSpeed(float minspeed)
+    {
+        float meanAge = LifeTime / 2.0f;          //在寿命的中间（即壮年）速度最快。注意，刚刚性成熟的兔子，年龄不一定是壮年，因而速度不一定最快。
+        float standardDeviation = meanAge / 2.0f; // 你可以根据需要调整标准差 
+
+        float ageFactor = Mathf.Exp(-Mathf.Pow((age - meanAge) / standardDeviation, 2) / 2);    //年龄对速度的影响因子
+        float energyFactor = energy / currentEnergyUpperlimit;  
+        // (float)(Math.Log(  ( (double)energy/(double)currentEnergyUpperlimit) + 0.01   )/Math.Log(100)) + 1;     //精力对速度的影响因子.引入对数，使得对于能量的非严重降低，引起的速度的降低变少————删除。不要和饥饿对动物的影响混淆。
+
+
+        float f_speed = standardspeed * ageFactor * energyFactor;    //计算出当前速度。
+        f_speed = Mathf.Clamp(f_speed, minspeed, standardspeed);    //不能小于最小速度。
+
+        //if(f_speed <= 0) { Debug.LogError($" currentspeed: {f_speed}, ageFactor:{ageFactor}, energyFactor:{energyFactor} "); }
+
+
+        return f_speed;
+
+
+    }
+
+    float CalculateValue(float minvalue)
+    {
+        float f_value;
+        if( age < reproductAge ){   
+            f_value = age * ( (standardvalue - minvalue) / reproductAge ) + minvalue;
+        }else{
+            f_value = standardvalue;
+        }
+        
+        return f_value;
+
+    }
+
+    public float get_Birth_Hunger(){   
+        float r = currentHungerUpperlimit * Birth_HungerUpperlimit_ratio / (0.3f * currentOffspring_number + 1.0f );   // 0.3系数，让出生数量对与出生饥饿度的影响不要太大，否则生10个，每个出生的饱腹度只有3
+        return r;
+    }
+    public float get_Birth_Energy(){   
+        float r = currentEnergyUpperlimit * Birth_EnergyUpperlimit_ratio / (0.3f * currentOffspring_number + 1.0f);  //
+
+        return r;
+    }
+    
+
+
+    public void ClampPositionToPlane()
+    {
+        GameObject the_plane = GameObject.FindWithTag("Plane");
+        Vector3 planeScale = the_plane.transform.localScale;
+        float planeWidth = planeScale.x * 10; //
+        float planeLength = planeScale.z * 10; //
+
+        Vector3 p = transform.position;
+        p.x = Mathf.Clamp(p.x,  -planeWidth / 2, planeWidth / 2);
+        p.z = Mathf.Clamp(p.z, -planeLength / 2, planeLength / 2);
+        transform.position = p;
+    }
+
+    
+}
+
+
+public enum RabbitState
+{
+    Idle,
+    Foraging,
+    Fleeing,
+    Resting,
+    Reproducing,
+    Dead
+}
+
+//同时出现食物和水及配偶，如何抉择的问题

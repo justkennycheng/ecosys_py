@@ -1,0 +1,165 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UIElements;
+
+public class GC : MonoBehaviour
+{
+    public int MaxGrassAmount;    //做大草数量
+    public float grass_refresh_time_interval;  //刷新草的时间间隔
+    public int grass_grow_amount_per;   //每次长出多少草
+    private float timer;
+    public GameObject the_grassPref; //grassPrefab, 草的Prefab || 拖拽方式
+    public GameObject the_plane; //放置草所在的plane   || 拖拽方式
+    public GameObject rabbitPref; // 兔子预设对象，用于繁殖
+    public GameObject wolfPref; // 狼预设对象，用于繁殖
+    public float simulationSpeedMultiplier;
+    
+    // Start is called before the first frame update
+    void Start()
+    {
+        //检查器中除了关联grass,plane,rabbit的预制对象外，不用给定变量值。在start()中设定即可。
+        
+        simulationSpeedMultiplier = 1.0f;
+        grass_refresh_time_interval = 1.0f; //多久更新一次草的数量
+        grass_grow_amount_per = 2;  //每次更新长出的草数量，整型
+        MaxGrassAmount = 300;   //满草数量
+    
+        timer = 0.0f;   //长草定时器
+        SpawnGrass(MaxGrassAmount);
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        float refresh_time_interval = grass_refresh_time_interval / simulationSpeedMultiplier; //多久补充一次草
+
+        timer += Time.deltaTime;
+        if (timer >= refresh_time_interval)
+        {
+            // 调用函数
+            refreshGrass(); //
+            // 重置计时器
+            timer = 0.0f;
+        }
+    }
+
+
+
+    void refreshGrass()
+    {
+        //
+        GameObject[] taggedObjects = GameObject.FindGameObjectsWithTag("Grass");
+        int count = taggedObjects.Length;
+        if(  count < MaxGrassAmount ){  //草原长到最多草后，不再增加长草
+            SpawnGrass(grass_grow_amount_per);
+        }
+
+
+    }
+
+    void SpawnGrass(int num)
+    {
+
+        // 获取Plane的尺寸
+        Vector3 planeScale = the_plane.transform.localScale;
+        float planeWidth = planeScale.x * 10; //
+        float planeLength = planeScale.z * 10; //
+
+        // 在Plane上随机放置草
+        for (int i = 0; i < num; i++)
+        {
+            // 生成随机位置
+            float randomX = Random.Range(-planeWidth / 2, planeWidth / 2);
+            float randomZ = Random.Range(-planeLength / 2, planeLength / 2);
+            Vector3 randomPosition = new Vector3(randomX, the_grassPref.transform.position.y, randomZ) + the_plane.transform.position;
+
+            // 生成草对象
+            Instantiate(the_grassPref, randomPosition, Quaternion.identity);
+        }
+    }
+
+    public void CreateRabbitOffspring(GameObject male_r, GameObject female_r)
+    {
+        Vector3 offset = new Vector3(Random.Range(-2.0f, 2.0f), 0.0f, Random.Range(-2.0f, 2.0f)); //
+        GameObject babyRabbit = Instantiate(rabbitPref,female_r.transform.position + offset, Quaternion.identity);   //小兔子随机出生在母亲周围2*2空间
+        Rabbit br = babyRabbit.GetComponent<Rabbit>();
+        Rabbit r1 = male_r.GetComponent<Rabbit>();
+        Rabbit r2 = female_r.GetComponent<Rabbit>();
+        br.age = 0.0f;
+        br.isMale = Random.value > r1.sexBias;    //考虑性别比例的遗传; 概率由男性遗传。
+        br.isAlive = true;
+        br.generation = r2.generation + 1;  //允许隔代交配，因而通过母亲来记录代际关系
+        ////////////////////
+        br.growrate = RandomizeAttribute(r1.growrate,r2.growrate);                              //此参数决定性成熟的年龄。
+        br.hungerDesireThreshold_factor = RandomizeAttribute(r1.hungerDesireThreshold_factor,r2.hungerDesireThreshold_factor);         //
+        br.energyDesireThreshold_factor = RandomizeAttribute(r1.energyDesireThreshold_factor,r2.energyDesireThreshold_factor);         //
+        br.LifeTime = RandomizeAttribute(r1.LifeTime,r2.LifeTime);                        //可遗传。
+        br.visionRange = RandomizeAttribute(r1.visionRange,r2.visionRange);                     //
+        br.searchRadius = RandomizeAttribute(r1.searchRadius,r2.searchRadius);                  //
+        br.standardspeed = RandomizeAttribute(r1.standardspeed,r2.standardspeed);   //可遗传，速度快引起耗能大
+        br.standardvalue = RandomizeAttribute(r1.standardvalue,r2.standardvalue);
+        br.reproductionCooldownTime = RandomizeAttribute(r1.reproductionCooldownTime,r2.reproductionCooldownTime);  //可遗传，生育快将带来负面代价即可
+        br.AvrBirthAmount = RandomizeAttribute(r1.AvrBirthAmount,r2.AvrBirthAmount);    //可遗传，生育多将带来负面代价即可
+        br.sexBias = RandomizeAttribute(r1.sexBias, r2.sexBias);    //性别偏好的遗传变异
+        /////////////
+        br.health = 100.0f;     //暂未启动生病机制
+        br.hunger = r2.get_Birth_Hunger();     //需慎重。 刚出生的孩子的饥饿度必须位于饥饿阈值之下，母亲生育时年龄越小，小兔子的出生饥饿值越低。
+        br.energy = r2.get_Birth_Energy();     //新生儿能量低，与母亲此批出生子女数量成反比。小兔子的最大能量应限制。
+    }
+
+
+    public void CreateWolfOffspring(GameObject male_r, GameObject female_r)
+    {
+        Vector3 offset = new Vector3(Random.Range(-2.0f, 2.0f), 0.0f, Random.Range(-2.0f, 2.0f)); //
+        GameObject babyWolf = Instantiate(wolfPref, female_r.transform.position + offset, Quaternion.identity);   //小兔子随机出生在母亲周围2*2空间
+        Wolf br = babyWolf.GetComponent<Wolf>();
+        Wolf r1 = male_r.GetComponent<Wolf>();
+        Wolf r2 = female_r.GetComponent<Wolf>();
+        br.age = 0.0f;
+        br.isMale = Random.value > r1.sexBias;    //考虑性别比例的遗传; 概率由男性遗传。
+        br.isAlive = true;
+        br.generation = r2.generation + 1;  //允许隔代交配，因而通过母亲来记录代际关系
+        ////////////////////
+        br.growrate = RandomizeAttribute(r1.growrate, r2.growrate);                              //此参数决定性成熟的年龄。
+        br.hungerDesireThreshold_factor = RandomizeAttribute(r1.hungerDesireThreshold_factor, r2.hungerDesireThreshold_factor);         //
+        br.energyDesireThreshold_factor = RandomizeAttribute(r1.energyDesireThreshold_factor, r2.energyDesireThreshold_factor);         //
+        br.LifeTime = RandomizeAttribute(r1.LifeTime, r2.LifeTime);                        //可遗传。
+        br.visionRange = RandomizeAttribute(r1.visionRange, r2.visionRange);                     //
+        br.searchRadius = RandomizeAttribute(r1.searchRadius, r2.searchRadius);                  //
+        br.standardspeed = RandomizeAttribute(r1.standardspeed, r2.standardspeed);   //可遗传，速度快引起耗能大
+        br.standardvalue = RandomizeAttribute(r1.standardvalue, r2.standardvalue);
+        br.reproductionCooldownTime = RandomizeAttribute(r1.reproductionCooldownTime, r2.reproductionCooldownTime);  //可遗传，生育快将带来负面代价即可
+        br.AvrBirthAmount = RandomizeAttribute(r1.AvrBirthAmount, r2.AvrBirthAmount);    //可遗传，生育多将带来负面代价即可
+        br.sexBias = RandomizeAttribute(r1.sexBias, r2.sexBias);    //性别偏好的遗传变异
+        /////////////
+        br.health = 100.0f;     //暂未启动生病机制
+        br.hunger = r2.get_Birth_Hunger();     //需慎重。 刚出生的孩子的饥饿度必须位于饥饿阈值之下，母亲生育时年龄越小，小兔子的出生饥饿值越低。
+        br.energy = r2.get_Birth_Energy();     //新生儿能量低，与母亲此批出生子女数量成反比。小兔子的最大能量应限制。
+    }
+
+
+
+
+
+    float RandomizeAttribute(float a, float b)
+    {
+        float baseAttribute = (Random.value > 0.5f) ? a : b;        //孟德尔遗传
+        //float baseAttribute = (a + b) / 2.0f;                           //平均值遗传
+
+        // 添加15%的浮动
+        return baseAttribute * Random.Range(0.85f, 1.15f);        //这里是物种进化的动力！！！！！！！！！！！！！！！！！！！
+    }
+    int RandomizeAttribute(int a, int b)
+    {
+        int baseAttribute = (Random.value > 0.5f) ? a : b;                             //孟德尔遗传
+        //float ave = (a + b) / 2.0f; int baseAttribute = (int)Mathf.Round(ave);           //平均值遗传
+
+        // 添加±1只的浮动
+        return baseAttribute + Random.Range(-1, 2);             //这里是物种进化的动力！！！！！！！！！！！！！！！！！！！！
+    }
+
+
+
+
+}

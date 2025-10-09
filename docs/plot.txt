@@ -1,0 +1,25 @@
+ecosys/
+├── core/                         # 核心生态逻辑模块
+│   ├── organism.py              # 抽象基类 Organism（兔子、狼的公共属性与方法）
+│   ├── rabbit.py                # Rabbit 类，继承 Organism，实现兔子行为逻辑
+│   ├── wolf.py                  # Wolf 类，继承 Organism，实现狼行为逻辑
+│   ├── state.py                 # 枚举类 RabbitState / WolfState
+│   ├── controller.py            # EcoController：全局调度器（对应 GC.cs）
+│   ├── vector.py                # Vec3 类，替代 Unity 的 Vector3
+│   └── genetics.py              # 遗传算法模块（RandomizeAttribute 等）
+│
+├── db/                          # 数据库交互模块
+│   ├── maria_interface.py      # 与 MariaDB 的连接与操作（插入、查询、更新）
+│   └── schema.sql              # 数据库表结构定义（可选）
+│
+├── frontend/                    # 可视化或渲染接口（可选）
+│   ├── godot_bridge.py         # 与 Godot 通信的桥接模块（如 WebSocket 或文件共享）
+│   └── render_stub.py          # 占位渲染器（用于调试或测试）
+│
+├── config/                      # 配置文件
+│   └── settings.yaml           # 仿真参数、初始种群、地图尺寸等
+│
+├── main.py                      # 主入口，初始化控制器、启动仿真循环
+└── utils/                       # 工具模块
+    ├── timer.py                # 时间控制、tick 计算
+    └── logger.py               # 日志记录与调试输出
