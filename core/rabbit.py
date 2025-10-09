@@ -13,10 +13,10 @@ class Rabbit(Organism):
         self.hunger_consume_rate = 0.5
         self.energy_consume_rate = 0.3
 
-    def tick(self, delta_time, simulation_speed):
-        self.age += delta_time * simulation_speed * self.age_consume_rate
-        self.hunger -= delta_time * simulation_speed * self.hunger_consume_rate
-        self.energy -= delta_time * simulation_speed * self.energy_consume_rate
+    def tick(self, delta_time):
+        self.age += delta_time * self.age_consume_rate
+        self.hunger -= delta_time * self.hunger_consume_rate
+        self.energy -= delta_time * self.energy_consume_rate
 
         # 状态切换逻辑（简化版）
         if self.hunger < 30:
