@@ -1,7 +1,10 @@
+"""Module providing a function printing python version."""
 # utils/setting_loader.py
+#import os
 import yaml
-import os
 
-def load_settings(path="settings.yaml"):
+
+def load_settings(path="./config/settings.yaml"):
+    """introduction"""
     with open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)

@@ -1,7 +1,9 @@
+"""Module providing a function printing python version."""
 # utils/timer.py
 import time
 
 class SimulationTimer:
+    """introduction"""
     def __init__(self, target_fps=60, simulation_speed=1.0):
         self.target_frame_time = 1.0 / target_fps  # 每帧真实时间步长（秒）
         self.simulation_speed = simulation_speed   # 仿真速率倍率
@@ -31,10 +33,13 @@ class SimulationTimer:
         self.total_simulation_time += self.target_frame_time * self.simulation_speed
 
     def set_speed(self, new_speed: float):
+        """introduction"""
         self.simulation_speed = new_speed
 
     def get_total_simulation_time(self):
+        """introduction"""
         return self.total_simulation_time
 
     def get_frame_runtime(self):
+        """introduction"""
         return self.frame_runtime
