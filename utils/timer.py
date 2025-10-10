@@ -3,39 +3,38 @@ import time
 
 class SimulationTimer:
     def __init__(self, target_fps=60, simulation_speed=1.0):
-        self.simulation_speed = simulation_speed
-        self.target_frame_time = 1.0 / target_fps  # 每帧目标时间（秒）
-        self.last_real_time = time.time()
-        self.total_simulation_time = 0.0
+        self.target_frame_time = 1.0 / target_fps  # 每帧真实时间步长（秒）
+        self.simulation_speed = simulation_speed   # 仿真速率倍率
+        self.total_simulation_time = 0.0           # 累计虚拟时间
+        self.last_frame_start = None               # 上一帧开始时间
+        self.frame_runtime = 0.0                   # 当前帧耗时
 
-    def tick(self):
+    def start_frame(self):
         """
-        每轮调用一次，返回虚拟世界中本轮的时间步长。
-        自动控制帧率，确保每轮间隔接近目标帧时间。
+        在每帧开始前调用，记录开始时间。
+        返回真实时间步长（target_frame_time），供 controller 使用。
         """
-        current_time = time.time()
+        self.last_frame_start = time.time()
+        return self.target_frame_time
 
-        # 计算真实时间间隔
-        delta_real_time = current_time - self.last_real_time
-        self.last_real_time = current_time
-
-        # 计算虚拟时间步长
-        delta_simulation_time = delta_real_time * self.simulation_speed
-        self.total_simulation_time += delta_simulation_time
-
-        return delta_simulation_time  # 返回虚拟时间间隔
-
-
-    def enforce_frame_rate(self):
+    def end_frame(self):
         """
-        在每轮结束后调用，补足剩余时间以控制帧率。
+        在每帧结束后调用，计算执行耗时并补足剩余时间。
+        更新 frame_runtime。
         """
-        elapsed = time.time() - self.last_real_time
-        sleep_time = max(0.0, self.target_frame_time - elapsed)
+        now = time.time()
+        self.frame_runtime = now - self.last_frame_start
+        sleep_time = max(0.0, self.target_frame_time - self.frame_runtime)
         time.sleep(sleep_time)
+
+        # 更新累计仿真时间
+        self.total_simulation_time += self.target_frame_time * self.simulation_speed
 
     def set_speed(self, new_speed: float):
         self.simulation_speed = new_speed
 
     def get_total_simulation_time(self):
         return self.total_simulation_time
+
+    def get_frame_runtime(self):
+        return self.frame_runtime

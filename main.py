@@ -22,10 +22,12 @@ def main():
     
     # 主循环
     while True:
+        # 每帧开始：获取真实时间步长
+        delta_time = timer.start_frame()
+        simulation_speed = timer.simulation_speed
+
         # 调度器更新生态系统状态
-        delta_time = timer.tick()   #获取上一帧开始到本帧开始的真实时间间隔
-        simulation_speed = timer.simulation_speed   #当前仿真速度
-        controller.tick(delta_time, rabbits, wolves)  #更新生态系统状态
+        controller.tick(delta_time, simulation_speed, rabbits, wolves)  #更新生态系统状态
 
         # 打印个体状态（调试用）
         for r in rabbits:
@@ -33,8 +35,9 @@ def main():
         for w in wolves:
             print(f"🐺 Wolf {w.id}: age={w.age:.2f}, hunger={w.hunger:.1f}, state={w.state.name}")
 
-        # 控制仿真帧率
-        timer.enforce_frame_rate()  # 补足剩余时间以控制帧率
+        # 每帧结束：补足剩余时间，保持帧率稳定
+        timer.end_frame()
+
 
 
         if time.time() - start_time > 3:  # 运行 3 秒后退出
