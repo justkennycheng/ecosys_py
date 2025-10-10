@@ -22,12 +22,13 @@ def main():
     
     # 主循环
     while True:
-        # 每帧开始：获取真实时间步长
-        delta_time = timer.start_frame()
-        simulation_speed = timer.simulation_speed
+        # 每帧开始：获取时间步长
+        target_frame_time = timer.start_frame() # 真实时间步长（秒）
+        simulation_speed = timer.simulation_speed   # 仿真速率倍率
+        target_frame_time_V = target_frame_time * simulation_speed  # 虚拟时间步长
 
         # 调度器更新生态系统状态
-        controller.tick(delta_time, simulation_speed, rabbits, wolves)  #更新生态系统状态
+        controller.tick(target_frame_time_V, rabbits, wolves)  #更新生态系统状态
 
         # 打印个体状态（调试用）
         for r in rabbits:

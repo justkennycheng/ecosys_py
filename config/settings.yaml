@@ -1,0 +1,25 @@
+# settings.yaml
+
+simulation:
+  target_fps: 60
+  simulation_speed: 1.0
+  total_duration: 300  # 仿真总时长（秒）
+
+environment:
+  map_width: 100
+  map_height: 100
+  grass_regrow_time: 5.0
+
+population:
+  initial_rabbits: 10
+  initial_wolves: 3
+
+rabbit:
+  max_age: 100.0
+  hunger_threshold: 50.0
+  reproduction_interval: 10.0
+
+wolf:
+  max_age: 150.0
+  hunger_threshold: 70.0
+  reproduction_interval: 15.0
