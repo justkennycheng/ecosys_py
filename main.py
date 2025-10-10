@@ -10,8 +10,7 @@ def main():
     """introduction"""
     settings = load_settings()  # 加载配置文件
 
-    timer = SimulationTimer(settings["simulation"]["target_fps"],
-                             settings["simulation"]["simulation_speed"])
+    timer = SimulationTimer(settings["simulation"]["target_fps"] , settings["simulation"]["simulation_speed"])
 
     # 初始化种群（通过InitManager调用类方法）
     rabbits = InitManager.init_rabbits(settings)
@@ -43,8 +42,8 @@ def main():
         timer.end_frame()
 
         # 运行时间限制（调试用）
-        if time.time() - start_time > 1:  # 运行 1 秒后退出
-            print("⏱️ 仿真已运行 1 秒，自动退出")
+        if time.time() - start_time > settings["simulation"]["total_duration"]:  # 运行 到仿真时长后退出
+            print(f"⏱️ 仿真已运行 {settings["simulation"]["total_duration"]} 秒，自动退出")
             break
 
 
