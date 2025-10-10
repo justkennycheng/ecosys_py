@@ -18,7 +18,7 @@ def main():
     # 初始化控制器
     controller = EcoController(settings)
 
-    # 记录程序开始时间
+    # 记录程序开始时间 
     start_time = time.time()
     
     # 主循环
