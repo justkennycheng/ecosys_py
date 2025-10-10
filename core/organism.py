@@ -1,6 +1,6 @@
 # core/organism.py
 class Organism:
-    def __init__(self, id):
+    def __init__(self, id, settings):
         self.id = id
         self.position = None  # 后续可接入 Vec3
         self.state = None

@@ -18,7 +18,7 @@ class InitManager:
         # 初始化兔子列表
         rabbits = []  # 创建一个空列表来存储兔子对象
         for i in range(num_rabbits):
-            rabbit = Rabbit(id=i)  # 创建一个 Rabbit 对象
+            rabbit = Rabbit(id=i , settings=settings)  # 创建一个 Rabbit 对象
             rabbits.append(rabbit)  # 将 Rabbit 对象添加到列表中
 
         return rabbits  # 返回兔子列表
@@ -38,7 +38,7 @@ class InitManager:
         # 初始化狼列表
         wolves = []     # 创建一个空列表来存储狼对象
         for i in range(num_wolves):
-            wolf = Wolf(id=i)  # 创建一个 Wolf 对象
+            wolf = Wolf(id=i , settings=settings)  # 创建一个 Wolf 对象
             wolves.append(wolf)  # 将 Wolf 对象添加到列表中
 
         return wolves  # 返回狼列表

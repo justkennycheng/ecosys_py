@@ -3,8 +3,8 @@ from core.organism import Organism
 from core.state import RabbitState
 
 class Rabbit(Organism):
-    def __init__(self, id):
-        super().__init__(id)
+    def __init__(self, id , settings):
+        super().__init__(id, settings)
         self.state = RabbitState.Idle
         self.age = 0.0
         self.energy = 100.0
