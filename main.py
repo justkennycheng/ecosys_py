@@ -1,22 +1,23 @@
 # main.py
 import time
+from utils.setting_loader import load_settings
 from core.controller import EcoController
-from core.rabbit import Rabbit
-from core.wolf import Wolf
 from utils.timer import SimulationTimer
-
+from core.init import InitManager
 
 def main():
     
-    timer = SimulationTimer(target_fps=2, simulation_speed=1.0)
+    settings = load_settings()  # 加载配置文件
 
-    # 初始化控制器
-    controller = EcoController()
-
-    # 初始化种群（后续可从数据库读取）
-    rabbits = [Rabbit(id=i) for i in range(10)]
-    wolves = [Wolf(id=i) for i in range(3)]
+    timer = SimulationTimer(settings["simulation"]["target_fps"], settings["simulation"]["simulation_speed"])
     
+    # 初始化种群（通过InitManager调用类方法）
+    rabbits = InitManager.init_rabbits(settings)
+    wolves = InitManager.init_wolves(settings)
+    
+    # 初始化控制器
+    controller = EcoController(settings)
+
     # 记录程序开始时间
     start_time = time.time()
     
@@ -39,10 +40,9 @@ def main():
         # 每帧结束：补足剩余时间，保持帧率稳定
         timer.end_frame()
 
-
-
-        if time.time() - start_time > 3:  # 运行 3 秒后退出
-            print("⏱️ 仿真已运行 3 秒，自动退出")
+        # 运行时间限制（调试用）
+        if time.time() - start_time > 1:  # 运行 1 秒后退出
+            print("⏱️ 仿真已运行 1 秒，自动退出")
             break
 
 

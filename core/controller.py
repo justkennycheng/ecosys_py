@@ -1,6 +1,6 @@
 # core/controller.py
 class EcoController:
-    def __init__(self):
+    def __init__(self , settings):
         self.grass_timer = 0.0
         self.grass_refresh_interval = 1.0
         self.max_grass_amount = 300
