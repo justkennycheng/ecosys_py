@@ -17,14 +17,14 @@ rabbit:
   #固定属性/在这里保存即可。
   UL_lifetime: 200             #最大寿命上限
   LL_lifttime: 20              #禁止极限爆发式繁殖
-  UL_gunger: 100.0             #最大饱腹度上限。 默认100. 不遗传。
+  UL_hunger: 100.0             #最大饱腹度上限。 默认100. 不遗传。
   UL_energy: 100.0              #最大能量上限； 默认100. 不遗传。
   #age_consume_rate:            #生命流逝率，每秒流逝多少————————不需要，按照真实时间扣除即可。
   UL_speed: 20                   #速度上限，最快速度。
   LL_speed: 1                   #速度下限，出生和年老时的最小速度。
   LL_value: 5.0                #出生时的最小食用价值。
-  birth_hunger: 30.0             #出生时最低的饥饿度
-  birth_energy: 30.0             #出生时最低的能量值
+  birth_max_hunger: 30.0             #出生时饥饿值上限
+  birth_max_energy: 30.0             #出生时能量上限
   hunger_consume_rate: 0.5      #标准（Idle状态下）饥饿速度。不遗传。
   energy_consume_rate: 0.5      #标准（Idle状态下）疲劳速度。不遗传。
   energy_recovery_rate: 1.5     #休息时每秒能量回复速度。不遗传。
@@ -34,7 +34,7 @@ rabbit:
   init_energy_desire: 0.6     #能量阈值因子/休息积极性因子，是一个对于最大能量的比例因子，也就是耐力，低于此值时开始休息.开始时可为0.6  可遗传，决定了动物的耐力。
   init_life_time: 180               #寿命。后期遗传算法应加以限制
   init_vision_range: 30            #视野范围，发现掠食者。后期遗传算法应加以限制
-  init_search_range: 50            #寻找觅食、配偶的范围，这个范围靠嗅觉，大于视野范围。
+  init_search_range: 50            #寻找食物、配偶的范围，这个范围靠嗅觉，大于视野范围。
   init_standard_speed: 20          #标准移动速度。后期遗传算法应加以限制。速度会直接参与乘以耗能速度，因而第一代兔子的初始速度不要设定太大。
   init_standard_value: 20          #标准食用价值。后期遗传算法应加以限制
   init_reproduction_cooldown_time: 50  #繁殖冷却时间，代表着繁殖频度。后期遗传算法应加以限制
@@ -44,9 +44,7 @@ rabbit:
   init_pregant_dur: 40             #怀孕时长
 
 wolf:
-  max_age: 150.0
-  hunger_threshold: 70.0
-  reproduction_interval: 15.0
+
 
 grass:
   currentvalue: 30.0

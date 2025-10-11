@@ -1,13 +1,13 @@
 """Module providing a function printing python version."""
 # core/rabbit.py
 from core.organism import Organism
-from core.state import RabbitState
 
 class Rabbit(Organism):
     """introduction"""
     def __init__(self, o_id , settings):
-        super().__init__(o_id, settings)
-        self.state = RabbitState.Idle
+        rabbit_settings = settings["rabbit"]
+        super().__init__(o_id, rabbit_settings)
+        self.state = OrganismState.Idle
         self.age = 0.0
         self.energy = 100.0
         self.hunger = 100.0

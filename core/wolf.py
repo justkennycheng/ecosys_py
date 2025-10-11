@@ -5,8 +5,9 @@ from core.state import WolfState
 
 class Wolf(Organism):
     """introduction"""
-    def __init__(self, o_id, settings):
-        super().__init__(o_id, settings)
+    def __init__(self, o_id , settings):
+        wolf_settings = settings["wolf"]
+        super().__init__(o_id, wolf_settings)
         self.state = WolfState.Idle
         self.age = 0.0
         self.energy = 100.0
