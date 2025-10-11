@@ -6,8 +6,8 @@ simulation:
   total_duration: 3  # 仿真总时长（秒）
 
 environment:
-  map_width: 100
-  map_height: 100
+  map_width: 200      #整数，-100到+100
+  map_height: 200
 
 population:
   initial_rabbits: 10
@@ -15,7 +15,7 @@ population:
 
 rabbit:
   #固定属性
-  max_age: 100.0
+  max_lifetime: 200             #最大寿命上限
   gunger_upper_limit: 100.0     #最大饱腹度上限。 默认100. 不遗传。
   energy_upper_limit: 100.0     #最大能量上限； 默认100. 不遗传。
   #age_consume_rate:             #生命流逝率，每秒流逝多少——不需要，按照真实时间扣除即可。
@@ -26,13 +26,13 @@ rabbit:
   min_value: 20.0                #出生时的最小食用价值。
   Birth_HungerUpperlimit_ratio: 0.3   #出生时最低的饥饿度，是一个相对于最大饱腹度上限HungerUpperLimit的比率值。
   Birth_EnergyUpperlimit_ratio: 3     #出生时最低的能量值，是一个相对于最大能量上限EnergyUpperLimit的比率值。
-  #初始遗传属性
-  init_growrate:                #成长速度。 成年年龄reproductAge = 成长速度growrate * 寿命LifeTime。开始时可为0.2。可遗传，如果成熟太快，会造成后代出生时很虚弱（饥饿值，能量值很低）。
-  init_hungerDesireFactor:      # 饥饿阈值因子/觅食积极性因子，是一个对于当前最大饱腹度的比例因子，低于此值时开始觅食.开始时可为0.6. 可遗传，决定了动物有多积极去获取食物。
-  init_energyDesireFactor:      # 能量阈值因子/休息积极性因子，是一个对于最大能量的比例因子，也就是耐力，低于此值时开始休息.开始时可为0.6  可遗传，决定了动物的耐力。
-  init_LifeTime:                #寿命。后期遗传算法应加以限制
-  init_visionRange:             # 视野范围，发现掠食者。后期遗传算法应加以限制
-  init_searchRadius:            # 觅食和饮水的范围；后期遗传算法应加以限制
+  #初始遗传属性。这些属性在对象建立时使用（直接使用或以此为基准增加随机量），但是在遗传时随机变化。
+  init_growrate: 0.2               #成长速度。 成年年龄reproductAge = 成长速度growrate * 寿命LifeTime。开始时可为0.2。可遗传，如果成熟太快，会造成后代出生时很虚弱（饥饿值，能量值很低）。
+  init_hungerDesireFactor: 0.6     #饥饿阈值因子/觅食积极性因子，是一个对于当前最大饱腹度的比例因子，低于此值时开始觅食.开始时可为0.6. 可遗传，决定了动物有多积极去获取食物。
+  init_energyDesireFactor: 0.6     #能量阈值因子/休息积极性因子，是一个对于最大能量的比例因子，也就是耐力，低于此值时开始休息.开始时可为0.6  可遗传，决定了动物的耐力。
+  init_LifeTime:  180              #寿命。后期遗传算法应加以限制
+  init_visionRange:             #视野范围，发现掠食者。后期遗传算法应加以限制
+  init_searchRadius:            #觅食和饮水的范围；后期遗传算法应加以限制
   init_standardspeed:           #标准移动速度。后期遗传算法应加以限制。速度会直接参与乘以耗能速度，因而第一代兔子的初始速度不要设定太大。
   init_standardvalue:           #标准食用价值。后期遗传算法应加以限制
   init_reproduceCooldownTime:   #繁殖冷却时间，代表着繁殖频度。后期遗传算法应加以限制
