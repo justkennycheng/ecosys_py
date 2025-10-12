@@ -1,6 +1,6 @@
 """Module providing a function printing python version."""
 import random
-from core.state import OrganismState
+from core.state import OrganismState, IdleState, ForagingState, FleeingState, RestingState, ReproducingState, DeadState
 from utils import functions as func
 
 # core/organism.py
@@ -16,7 +16,7 @@ class Organism:
         self.ismale = random.randint(0, 1)
         self.health = 100.0     #暂不启用
         self.reproduction_countdown = 0.0
-        self.state = OrganismState.Idle
+        self.state = IdleState() # <-- 使用状态对象
         self.generation = 1     #整数
         self.parent_id = None
         self.death_age = None
@@ -65,6 +65,17 @@ class Organism:
             #在当前繁殖的话能够出生的后代数量;使用了peak函数，但是程序机制在成年前不会繁殖所以可以使用这个函数。
         self.energy = self.hunger_TH
         self.hunger = self.energy_TH
+
+    def if_needs_to_forage(self):
+        """Checks if the organism's hunger is below its threshold."""
+        return self.hunger < self.hunger_TH
+
+    def wander(self):
+        """
+        Makes the organism move randomly.
+        (Currently a placeholder with no logic).
+        """
+        pass
         
 
     def tick(self, target_frame_time_v):
@@ -74,6 +85,10 @@ class Organism:
         self.energy -= target_frame_time_v * self.energy_consume_rate
 
         # 状态机
+        new_state = self.state.execute(self)    #这个execute()必须返回值，或者返回新的状态对象，或者返回None表示状态不变。
+        if new_state is not None:
+            self.state.exit(self)
+            self.state = new_state
+            self.state.enter(self)
 
         ###
-
