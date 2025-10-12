@@ -11,8 +11,5 @@ class Rabbit(Organism):
 
     def tick(self, target_frame_time_v):
         """introduction"""
-        self.age += target_frame_time_v
-        self.hunger -= target_frame_time_v * self.hunger_consume_rate
-        self.energy -= target_frame_time_v * self.energy_consume_rate
+        super().tick(target_frame_time_v)
 
-        # 状态机

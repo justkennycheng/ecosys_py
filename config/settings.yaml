@@ -14,66 +14,68 @@ population:
   initial_wolves: 3
 
 rabbit:
-  #固定属性/在这里保存即可。
-  UL_life_time: 600.0            #最大寿命上限,秒
-  LL_life_time: 30.0            #禁止极限爆发式死亡繁殖
-  UL_hunger: 100.0             #最大饱腹度上限。 默认100. 不遗传。
-  UL_energy: 100.0              #最大能量上限； 默认100. 不遗传。
-  birth_max_hunger: 30.0             #出生时饥饿值上限
-  birth_max_energy: 30.0             #出生时能量上限
-  #age_consume_rate:            #生命流逝率，每秒流逝多少————————不需要，按照真实时间扣除即可。
-  UL_speed: 10.0                   #速度上限，最快速度。
-  LL_speed: 1.0                #速度下限，出生和年老时的最小速度。
-  birth_value: 20.0                #出生时的最小食用价值。
-  hunger_consume_rate: 1.0      #标准（Idle状态下）饥饿速度。不遗传。
-  energy_consume_rate: 1.0      #标准（Idle状态下）疲劳速度。不遗传。
-  energy_recovery_rate: 4.0     #休息时每秒能量回复速度。不遗传。
-  #初始遗传属性。这些属性在对象建立时使用（直接使用或以此为基准增加随机量），但是在遗传时随机变化。
-  init_reproduce_age: 60.0               #成年年龄。可遗传。
-  init_hunger_desire: 0.6     #饥饿阈值因子/觅食积极性因子，是一个对于当前最大饱腹度的比例因子，低于此值时开始觅食.开始时可为0.6. 可遗传，决定了动物有多积极去获取食物。
-  init_energy_desire: 0.6     #能量阈值因子/休息积极性因子，是一个对于最大能量的比例因子，也就是耐力，低于此值时开始休息.开始时可为0.6  可遗传，决定了动物的耐力。
-  init_life_time: 300.0               #寿命。后期遗传算法应加以限制
-  init_vision_range: 30.0            #视野范围，发现掠食者。后期遗传算法应加以限制
-  init_search_range: 50.0            #寻找食物、配偶的范围，这个范围靠嗅觉，大于视野范围。
-  init_standard_speed: 20.0          #标准移动速度。后期遗传算法应加以限制。速度会直接参与乘以耗能速度，因而第一代兔子的初始速度不要设定太大。
-  init_standard_value: 50.0          #标准食用价值。后期遗传算法应加以限制
-  init_reproduction_cooldown_time: 50  #繁殖冷却时间，代表着繁殖频度。后期遗传算法应加以限制
-  init_offspring_amount: 3         #每次生育数量。不限制，这次要增加怀孕机制，怀孕期间根据繁殖数量增加耗能。
-  init_givebirth_sex_bias: 0.5             #性别偏好。初始为0.5表示无偏好。越大表示越倾向出生male
-  init_flee_factor: 1.5         #逃跑因子，决定发现掠食者后逃跑超出视野多远。默认1.5。可遗传。
-  init_flee_speed_facrot: 3
-  init_pregant_dur: 40.0             #怀孕时长
+  # === 兔子 (被捕食者) ===
+  # 特点: 繁殖快，生命周期短，擅长侦查和逃跑
+  # 固定属性
+  UL_life_time: 300.0           # 最大寿命 (秒)
+  LL_life_time: 30.0            # 最小寿命
+  UL_hunger: 100.0              # 最大饱腹度
+  UL_energy: 100.0              # 最大能量
+  birth_max_hunger: 30.0        # 出生时最大饱腹度
+  birth_max_energy: 40.0        # 出生时最大能量
+  UL_speed: 15.0                # 速度上限
+  LL_speed: 1.0                 # 速度下限
+  birth_value: 15.0             # 出生时的食用价值
+  hunger_consume_rate: 1.5      # 饥饿速度 (需要更频繁吃草)
+  energy_consume_rate: 1.0      # 疲劳速度
+  energy_recovery_rate: 4.0     # 能量回复速度
+  # 初始遗传属性
+  init_reproduce_age: 40.0      # 成年年龄 (更快成年)
+  init_hunger_desire: 0.7       # 饥饿阈值 (更积极觅食)
+  init_energy_desire: 0.6       # 能量阈值
+  init_life_time: 180.0         # 平均寿命
+  init_vision_range: 50.0       # 视野范围 (更广的视野以发现捕食者)
+  init_search_range: 30.0       # 搜寻范围 (寻找草不需要太大范围)
+  init_standard_speed: 8.0      # 标准移动速度 (低于速度上限)
+  init_standard_value: 30.0     # 被捕食的营养价值
+  init_reproduction_cooldown_time: 30 # 繁殖冷却 (繁殖更频繁)
+  init_offspring_amount: 4      # 每胎数量 (更多后代)
+  init_givebirth_sex_bias: 0.5  # 性别偏好
+  init_flee_factor: 2.0         # 逃跑因子 (跑得更远)
+  init_flee_speed_factor: 1.8   # 逃跑时速度变增加的倍数，但不能超过上限
+  init_pregant_dur: 20.0        # 怀孕时长
 
 wolf:
-  #固定属性/在这里保存即可。
-  UL_life_time: 600.0            #最大寿命上限,秒
-  LL_life_time: 30.0            #禁止极限爆发式死亡繁殖
-  UL_hunger: 100.0             #最大饱腹度上限。 默认100. 不遗传。
-  UL_energy: 100.0              #最大能量上限； 默认100. 不遗传。
-  birth_max_hunger: 30.0             #出生时饥饿值上限
-  birth_max_energy: 30.0             #出生时能量上限
-  #age_consume_rate:            #生命流逝率，每秒流逝多少————————不需要，按照真实时间扣除即可。
-  UL_speed: 10.0                   #速度上限，最快速度。
-  LL_speed: 1.0                #速度下限，出生和年老时的最小速度。
-  birth_value: 20.0                #出生时的最小食用价值。
-  hunger_consume_rate: 1.0      #标准（Idle状态下）饥饿速度。不遗传。
-  energy_consume_rate: 1.0      #标准（Idle状态下）疲劳速度。不遗传。
-  energy_recovery_rate: 4.0     #休息时每秒能量回复速度。不遗传。
-  #初始遗传属性。这些属性在对象建立时使用（直接使用或以此为基准增加随机量），但是在遗传时随机变化。
-  init_reproduce_age: 60.0               #成年年龄。可遗传。
-  init_hunger_desire: 0.6     #饥饿阈值因子/觅食积极性因子，是一个对于当前最大饱腹度的比例因子，低于此值时开始觅食.开始时可为0.6. 可遗传，决定了动物有多积极去获取食物。
-  init_energy_desire: 0.6     #能量阈值因子/休息积极性因子，是一个对于最大能量的比例因子，也就是耐力，低于此值时开始休息.开始时可为0.6  可遗传，决定了动物的耐力。
-  init_life_time: 300.0               #寿命。后期遗传算法应加以限制
-  init_vision_range: 30.0            #视野范围，发现掠食者。后期遗传算法应加以限制
-  init_search_range: 50.0            #寻找食物、配偶的范围，这个范围靠嗅觉，大于视野范围。
-  init_standard_speed: 20.0          #标准移动速度。后期遗传算法应加以限制。速度会直接参与乘以耗能速度，因而第一代兔子的初始速度不要设定太大。
-  init_standard_value: 50.0          #标准食用价值。后期遗传算法应加以限制
-  init_reproduction_cooldown_time: 50  #繁殖冷却时间，代表着繁殖频度。后期遗传算法应加以限制
-  init_offspring_amount: 3         #每次生育数量。不限制，这次要增加怀孕机制，怀孕期间根据繁殖数量增加耗能。
-  init_givebirth_sex_bias: 0.5             #性别偏好。初始为0.5表示无偏好。越大表示越倾向出生male
-  init_flee_factor: 1.5         #逃跑因子，决定发现掠食者后逃跑超出视野多远。默认1.5。可遗传。
-  init_flee_speed_facrot: 3
-  init_pregant_dur: 40.0             #怀孕时长
+  # === 狼 (捕食者) ===
+  # 特点: 繁殖慢，生命周期长，擅长追踪和捕猎
+  # 固定属性
+  UL_life_time: 600.0           # 最大寿命 (秒)
+  LL_life_time: 60.0            # 最小寿命
+  UL_hunger: 100.0              # 最大饱腹度
+  UL_energy: 120.0              # 最大能量 (耐力更强)
+  birth_max_hunger: 40.0        # 出生时最大饱腹度
+  birth_max_energy: 40.0        # 出生时最大能量
+  UL_speed: 12.0                # 速度上限
+  LL_speed: 2.0                 # 速度下限
+  birth_value: 20.0             # 出生时的食用价值 (对于可能的更高级捕食者)
+  hunger_consume_rate: 1.0      # 饥饿速度 (一次吃饱, 消耗更慢)
+  energy_consume_rate: 1.5      # 疲劳速度 (追猎时消耗更大)
+  energy_recovery_rate: 3.0     # 能量回复速度
+  # 初始遗传属性
+  init_reproduce_age: 100.0     # 成年年龄 (更慢成年)
+  init_hunger_desire: 0.5       # 饥饿阈值 (不那么容易饿)
+  init_energy_desire: 0.5       # 能量阈值
+  init_life_time: 400.0         # 平均寿命
+  init_vision_range: 40.0       # 视野范围
+  init_search_range: 80.0       # 搜寻范围 (更大的范围用于寻找猎物)
+  init_standard_speed: 10.0     # 标准移动速度 (比兔子标准速度快，用于追捕)
+  init_standard_value: 80.0     # 被捕食的营养价值
+  init_reproduction_cooldown_time: 150 # 繁殖冷却 (繁殖频率低)
+  init_offspring_amount: 2      # 每胎数量 (更少后代)
+  init_givebirth_sex_bias: 0.5  # 性别偏好
+  init_flee_factor: 1.0         # 逃跑因子
+  init_flee_speed_factor: 1.8   # 逃跑时速度变增加的倍数，但不能超过上限
+  init_pregant_dur: 60.0        # 怀孕时长
 
 grass:
   currentvalue: 30.0

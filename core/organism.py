@@ -34,7 +34,7 @@ class Organism:
         self.offspring_amount = settings['init_offspring_amount']
         self.givebirth_sex_bias = settings['init_givebirth_sex_bias']
         self.flee_factor = settings['init_flee_factor']
-        self.flee_speed_factor = settings['init_flee_speed_facrot']
+        self.flee_speed_factor = settings['init_flee_speed_factor']
         self.pregant_dur = settings['init_pregant_dur']
         #补全固定属性[避免向tick()传递settings]
         self.UL_life_time = settings['UL_life_time']
@@ -69,4 +69,11 @@ class Organism:
 
     def tick(self, target_frame_time_v):
         """introduction"""
-        raise NotImplementedError("tick() must be implemented by subclass")
+        self.age += target_frame_time_v
+        self.hunger -= target_frame_time_v * self.hunger_consume_rate
+        self.energy -= target_frame_time_v * self.energy_consume_rate
+
+        # 状态机
+
+        ###
+

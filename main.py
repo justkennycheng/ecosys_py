@@ -28,20 +28,29 @@ def main():
         target_frame_time = timer.start_frame() # 真实时间步长（秒）
         simulation_speed = timer.simulation_speed   # 仿真速率倍率
         target_frame_time_v = target_frame_time * simulation_speed  # 虚拟时间步长
+        # 1/fps * speed = speed / fps = 虚拟步长
+        # 即，仿真速度/帧率 = 虚拟步长 = 仿真精度
+        # 虚拟步长越大，每一次计算中系统的动作步长就越大（动物走的越远，饥饿和能量下降越多），模拟的精度越差。
+        # 因而为了保障仿真精度，如果增加了仿真速度，最好也增加帧率。
 
         # 调度器更新生态系统状态
         controller.tick(target_frame_time_v, rabbits, wolves)  #更新生态系统状态
 
         # 打印个体状态（调试用）
         for r in rabbits:
-            print(f"🐰 Rabbit {r.o_id}: age={r.age:.2f}, hunger={r.hunger:.1f}, state={r.state.name}")
+            sex = 'M' if r.ismale else 'F'
+            print(f"🐰 Rabbit id={r.o_id} gen={r.generation} {sex} state={r.state.name} | age={r.age:.1f}, speed={r.speed:.2f}, hunger={r.hunger:.1f}, energy={r.energy:.1f}")
         for w in wolves:
-            print(f"🐺 Wolf {w.o_id}: age={w.age:.2f}, hunger={w.hunger:.1f}, state={w.state.name}")
+            sex = 'M' if w.ismale else 'F'
+            print(f"🐺 Wolf  id={w.o_id} gen={w.generation} {sex} state={w.state.name} | age={w.age:.1f}, speed={w.speed:.2f}, hunger={w.hunger:.1f}, energy={w.energy:.1f}")
 
         # 每帧结束：补足剩余时间，保持帧率稳定
         timer.end_frame()
 
-        # 运行时间限制（调试用）
+        # 打印帧状态（调试用）
+        print(f"[STATS] FPS: {settings['simulation']['target_fps']} | Speed: {timer.simulation_speed}x |Target_frame_time: {timer.target_frame_time:.8f}s | Runtime: {timer.frame_runtime:.8f}s | Sleep: {timer.sleep_time:.8f}s")
+
+        # 运行结束后提示（调试用）
         if time.time() - start_time > settings["simulation"]["total_duration"]:  # 运行 到仿真时长后退出
             print(f"⏱️ 仿真已运行 {settings["simulation"]["total_duration"]} 秒，自动退出")
             break

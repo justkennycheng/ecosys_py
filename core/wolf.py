@@ -11,9 +11,5 @@ class Wolf(Organism):
 
     def tick(self, target_frame_time_v):
         """introduction"""
-        self.age += target_frame_time_v
-        self.hunger -= target_frame_time_v * self.hunger_consume_rate
-        self.energy -= target_frame_time_v * self.energy_consume_rate
-
-        # 状态机
+        super().tick(target_frame_time_v)
 
