@@ -79,7 +79,7 @@ class Organism:
     def if_needs_to_rest(self):
         """Checks if the organism's energy is below its threshold."""
         return self.energy < self.energy_TH
-    
+
     def if_treathen_detected(self, all_organisms):
         """
         检查在自己的视野范围内是否有捕食者。
@@ -91,14 +91,14 @@ class Organism:
             if other.preditor_level > self.preditor_level:
                 # 计算与捕食者之间的距离
                 distance = np.linalg.norm(self.position - other.position)
-                
+
                 # 如果捕食者进入了视野范围，则视为威胁
                 if distance < self.vision_range:
                     return True
-        
+
         # 没有发现威胁
         return False
-    
+
     def wander(self):
         """
         实现随机闲逛行为。
@@ -108,10 +108,10 @@ class Organism:
         # 这个抖动向量的每个分量范围是 [-0.25, 0.25]
         jitter = (np.random.rand(2) - 0.5) * 0.5
         self.direction += jitter    #加上jitter向量会改变方向（同时也改变长度）
-        
+
         # 重新归一化方向向量以保持速度恒定
         self.direction /= np.linalg.norm(self.direction)
-        
+
         # 根据方向、速度和时间增量来更新位置
         self.position = self.position + self.direction * self.speed * self.dt
 
@@ -119,13 +119,13 @@ class Organism:
         # 假设世界大小是 200x200
         self.position = np.mod(self.position, 200)  #从一侧超出地图，则从另一侧出现
 
-       
+
 
     def tick(self, target_frame_time_v , all_organisms):
         """introduction"""
 
         #以后这里增加动态调整属性的代码
-        
+
         self.dt = target_frame_time_v  # 将时间增量存储起来，以便其他方法使用
 
         self.age += target_frame_time_v
