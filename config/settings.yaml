@@ -34,8 +34,8 @@ rabbit:
   init_hunger_desire: 0.7       # 饥饿阈值 (更积极觅食)
   init_energy_desire: 0.6       # 能量阈值
   init_life_time: 180.0         # 平均寿命
-  init_vision_range: 50.0       # 视野范围 (更广的视野以发现捕食者)
-  init_search_range: 30.0       # 搜寻范围 (寻找草不需要太大范围)
+  init_vision_range: 20.0       # 视野范围
+  init_search_range: 40.0       # 搜寻范围
   init_standard_speed: 8.0      # 标准移动速度 (低于速度上限)
   init_standard_value: 30.0     # 被捕食的营养价值
   init_reproduction_cooldown_time: 30 # 繁殖冷却 (繁殖更频繁)
@@ -67,7 +67,7 @@ wolf:
   init_energy_desire: 0.5       # 能量阈值
   init_life_time: 400.0         # 平均寿命
   init_vision_range: 40.0       # 视野范围
-  init_search_range: 80.0       # 搜寻范围 (更大的范围用于寻找猎物)
+  init_search_range: 80.0       # 搜寻范围 
   init_standard_speed: 10.0     # 标准移动速度 (比兔子标准速度快，用于追捕)
   init_standard_value: 80.0     # 被捕食的营养价值
   init_reproduction_cooldown_time: 150 # 繁殖冷却 (繁殖频率低)

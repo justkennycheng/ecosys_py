@@ -1,3 +1,4 @@
+"""Module providing a function printing python version."""
 import enum
 
 class OrganismState(enum.Enum):
@@ -12,15 +13,13 @@ class OrganismState(enum.Enum):
 class State:
     """
     这是一个所有状态的“基类”或“模板”。
-    我们不再强制要求，而是通过约定，让之后具体的每一个状态类
-    （比如IdleState）都包含下面这三个方法。
     """
 
     def enter(self, agent):
         """进入此状态时执行的代码"""
         pass  # pass 表示什么也不做，具体功能留给子类去实现
 
-    def execute(self, agent):
+    def execute(self, agent, all_organisms):
         """每个循环更新时执行的代码（主要逻辑）"""
         pass  # 留给子类去实现
 
@@ -34,15 +33,21 @@ class State:
 
 class IdleState(State):
     """
-    生物空闲时的状态。
-    根据生物的需求转换到其他状态。
+    生物空闲时的状态。根据生物的需求转换到其他状态。
     """
-    def execute(self, agent):
+    def execute(self, agent , all_organisms):
         # 饱腹度低的生物应该开始觅食
-        # 我们假设 agent 对象上未来会有一个 needs_to_forage() 方法
         if agent.if_needs_to_forage():
             return ForagingState()
+        
+        # 能量低的生物应该开始休息
+        if agent.if_needs_to_rest():
+            return RestingState()
 
+        #检查四周是否有威胁需要逃跑
+        if agent.if_treathen_detected(all_organisms):
+            return FleeingState()
+        
         # 如果没有紧急需求，就四处闲逛
         # 我们假设 agent 对象上未来会有一个 wander() 方法
         agent.wander()
@@ -54,7 +59,7 @@ class ForagingState(State):
     """
     生物觅食时的状态。
     """
-    def execute(self, agent):
+    def execute(self, agent, all_organisms):
         # 1. 安全第一：检查是否有天敌
         # if agent.is_predator_nearby():
         #     return FleeingState()
@@ -79,7 +84,7 @@ class FleeingState(State):
     """
     生物逃跑时的状态。
     """
-    def execute(self, agent):
+    def execute(self, agent, all_organisms):
         # 1. 找到最近的天敌
         # predator = agent.find_nearest_predator()
         # if predator:
@@ -96,7 +101,7 @@ class RestingState(State):
     """
     生物休息时的状态，用于恢复能量。
     """
-    def execute(self, agent):
+    def execute(self, agent, all_organisms):
         # 1. 休息时也要警惕天敌
         # if agent.is_predator_nearby():
         #     return FleeingState()
@@ -115,7 +120,7 @@ class ReproducingState(State):
     """
     生物繁殖时的状态。
     """
-    def execute(self, agent):
+    def execute(self, agent, all_organisms):
         # 1. 繁殖时也要警惕天敌
         # if agent.is_predator_nearby():
         #     return FleeingState()
@@ -135,6 +140,6 @@ class ReproducingState(State):
 
 class DeadState(State):
     """死亡状态的占位符"""
-    def execute(self, agent):
+    def execute(self, agent, all_organisms):
         # 死亡的生物什么也不做
         pass

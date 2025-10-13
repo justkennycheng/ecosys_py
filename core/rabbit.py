@@ -7,9 +7,11 @@ class Rabbit(Organism):
     def __init__(self, settings):
         rabbit_settings = settings["rabbit"]
         super().__init__(rabbit_settings)
+        self.preditor_level = 0     #0表示不是掠食者
+        
 
 
-    def tick(self, target_frame_time_v):
+    def tick(self, target_frame_time_v , all_organisms):
         """introduction"""
-        super().tick(target_frame_time_v)
+        super().tick(target_frame_time_v , all_organisms)
 

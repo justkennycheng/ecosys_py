@@ -17,7 +17,7 @@ def main():
     wolves = InitManager.init_wolves(settings)
 
     # 初始化控制器
-    controller = EcoController(settings)
+    controller = EcoController()
 
     # 记录程序开始时间
     start_time = time.time()
