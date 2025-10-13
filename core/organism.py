@@ -78,15 +78,15 @@ class Organism:
     
     def if_treathen_detected(self , all_organisms):
         """检查是否有猎食者."""
-        pass
+        
     
     def wander(self):
         """
         Makes the organism move randomly.
         (Currently a placeholder with no logic).
         """
-        pass
-        
+
+       
 
     def tick(self, target_frame_time_v , all_organisms):
         """introduction"""
