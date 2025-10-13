@@ -17,15 +17,15 @@ class State:
 
     def enter(self, agent):
         """进入此状态时执行的代码"""
-        pass  # pass 表示什么也不做，具体功能留给子类去实现
+        # pass 表示什么也不做，具体功能留给子类去实现
 
     def execute(self, agent, all_organisms):
         """每个循环更新时执行的代码（主要逻辑）"""
-        pass  # 留给子类去实现
+        # 留给子类去实现
 
     def exit(self, agent):
         """离开此状态时执行的代码"""
-        pass  # 留给子类去实现
+        # 留给子类去实现
 
 # ==================================
 #         Concrete States
@@ -63,12 +63,12 @@ class ForagingState(State):
         # 1. 安全第一：检查是否有天敌
         # if agent.is_predator_nearby():
         #     return FleeingState()
-        pass # 暂不实现
+        # 暂不实现
 
         # 2. 检查是否吃饱
         # if agent.is_full():
         #     return IdleState()
-        pass # 暂不实现
+        # 暂不实现
 
         # 3. 寻找食物
         # food = agent.find_food()
@@ -76,7 +76,7 @@ class ForagingState(State):
         #     pass # 走向食物
         # else:
         #     pass # 闲逛
-        pass # 暂不实现
+        # 暂不实现
 
         return None # 暂时保持觅食状态
 
@@ -93,8 +93,8 @@ class FleeingState(State):
         # else:
         #     # 3. 天敌消失，切换回空闲状态
         #     return IdleState()
-        pass # 暂不实现
- 
+        # 暂不实现
+
         return None # 暂时保持逃跑状态
 
 class RestingState(State):
@@ -105,14 +105,14 @@ class RestingState(State):
         # 1. 休息时也要警惕天敌
         # if agent.is_predator_nearby():
         #     return FleeingState()
- 
+
         # 2. 恢复能量
         # agent.recover_energy()
 
         # 3. 如果能量满了，切换回空闲状态
         # if agent.is_energy_full():
         #     return IdleState()
-        pass # 暂不实现
+        # 暂不实现
 
         return None # 暂时保持休息状态
 
@@ -124,7 +124,7 @@ class ReproducingState(State):
         # 1. 繁殖时也要警惕天敌
         # if agent.is_predator_nearby():
         #     return FleeingState()
- 
+
         # 2. 寻找配偶
         # mate = agent.find_mate()
         # if mate:
@@ -134,7 +134,7 @@ class ReproducingState(State):
         # else:
         #     # 4. 没找到配偶，闲逛
         #     agent.wander()
-        pass # 暂不实现
+        # 暂不实现
 
         return None # 暂时保持繁殖状态
 
@@ -142,4 +142,4 @@ class DeadState(State):
     """死亡状态的占位符"""
     def execute(self, agent, all_organisms):
         # 死亡的生物什么也不做
-        pass
+        return None
