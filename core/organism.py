@@ -1,7 +1,7 @@
 """Module providing a function printing python version."""
 import random
 import numpy as np
-from core.state import OrganismState, IdleState, ForagingState, FleeingState, RestingState, ReproducingState, DeadState
+from core.state import IdleState, ForagingState, FleeingState, RestingState, ReproducingState, DeadState
 from utils import functions as func
 
 
@@ -14,7 +14,10 @@ class Organism:
         self.o_id = Organism._next_id
         Organism._next_id += 1
         # 实例属性,仅定义给具体实例
-        self.position = self.position = np.array([random.uniform(0, 100), random.uniform(0, 100)])
+        self.position = np.array([random.uniform(0, settings['map_width']), random.uniform(0, settings['map_height'])])
+        angle = random.uniform(0, 2 * np.pi)
+        self.direction = np.array([np.cos(angle), np.sin(angle)])
+        self.dt = 0.0
         self.ismale = random.randint(0, 1)
         self.health = 100.0     #暂不启用
         self.reproduction_countdown = 0.0
@@ -23,6 +26,7 @@ class Organism:
         self.parent_id = None
         self.death_age = None
         self.death_reason = None
+        self.preditor_level = -1  # 捕食者等级,0表示非捕食者
         #遗传属性
         self.reproduce_age = settings['init_reproduce_age']          #成熟年龄,秒。代替之前的的growrate
         self.hunger_desire = settings['init_hunger_desire']          #饱腹值的百分之多少开始去觅食
@@ -76,20 +80,54 @@ class Organism:
         """Checks if the organism's energy is below its threshold."""
         return self.energy < self.energy_TH
     
-    def if_treathen_detected(self , all_organisms):
-        """检查是否有猎食者."""
+    def if_treathen_detected(self, all_organisms):
+        """
+        检查在自己的视野范围内是否有捕食者。
+        捕食者的定义是任何 `preditor_level` 高于自己的生物。
+        """
+        # 遍历所有生物
+        for other in all_organisms:
+            # 检查对方是否是自己的捕食者
+            if other.preditor_level > self.preditor_level:
+                # 计算与捕食者之间的距离
+                distance = np.linalg.norm(self.position - other.position)
+                
+                # 如果捕食者进入了视野范围，则视为威胁
+                if distance < self.vision_range:
+                    return True
         
+        # 没有发现威胁
+        return False
     
     def wander(self):
         """
-        Makes the organism move randomly.
-        (Currently a placeholder with no logic).
+        实现随机闲逛行为。
+        生物会稍微改变其方向然后前进。
         """
+        # 给方向向量增加一个小的随机“抖动”
+        # 这个抖动向量的每个分量范围是 [-0.25, 0.25]
+        jitter = (np.random.rand(2) - 0.5) * 0.5
+        self.direction += jitter    #加上jitter向量会改变方向（同时也改变长度）
+        
+        # 重新归一化方向向量以保持速度恒定
+        self.direction /= np.linalg.norm(self.direction)
+        
+        # 根据方向、速度和时间增量来更新位置
+        self.position = self.position + self.direction * self.speed * self.dt
+
+        # 边界检查 (简单的环绕效果)
+        # 假设世界大小是 200x200
+        self.position = np.mod(self.position, 200)  #从一侧超出地图，则从另一侧出现
 
        
 
     def tick(self, target_frame_time_v , all_organisms):
         """introduction"""
+
+        #以后这里增加动态调整属性的代码
+        
+        self.dt = target_frame_time_v  # 将时间增量存储起来，以便其他方法使用
+
         self.age += target_frame_time_v
         self.hunger -= target_frame_time_v * self.hunger_consume_rate
         self.energy -= target_frame_time_v * self.energy_consume_rate

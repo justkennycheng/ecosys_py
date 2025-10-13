@@ -1,14 +1,4 @@
 """Module providing a function printing python version."""
-import enum
-
-class OrganismState(enum.Enum):
-    """定义生物体的各种状态"""
-    IDLE = 0
-    FORAGING = 1
-    FLEEING = 2
-    RESTING = 3
-    REPRODUCING = 4
-    DEAD = 5
 
 class State:
     """
@@ -39,7 +29,7 @@ class IdleState(State):
         # 饱腹度低的生物应该开始觅食
         if agent.if_needs_to_forage():
             return ForagingState()
-        
+
         # 能量低的生物应该开始休息
         if agent.if_needs_to_rest():
             return RestingState()
@@ -47,7 +37,7 @@ class IdleState(State):
         #检查四周是否有威胁需要逃跑
         if agent.if_treathen_detected(all_organisms):
             return FleeingState()
-        
+
         # 如果没有紧急需求，就四处闲逛
         # 我们假设 agent 对象上未来会有一个 wander() 方法
         agent.wander()
