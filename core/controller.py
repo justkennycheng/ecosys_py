@@ -33,21 +33,23 @@ class EcoController:
 
     def refresh_grass(self):
         """
-        补充缺失的草地，以达到最大数量。
+        Grows a fixed amount of new grass, up to the maximum limit.
         """
         current_amount = self.grass_positions.shape[0]
-        needed_amount = self.grass_max_amount - current_amount
         
-        if needed_amount > 0:
-            # 随机生成新的草地位置
-            new_x = np.random.uniform(0, self.map_settings["map_width"], needed_amount)
-            new_y = np.random.uniform(0, self.map_settings["map_height"], needed_amount)
-            new_grass = np.stack((new_x, new_y), axis=1) # 形状 (needed_amount, 2)
-            
-            # 合并新的和现有的草地
-            if current_amount > 0:
+        # Determine how much new grass to grow, capped by the remaining capacity.
+        amount_to_grow = min(self.grass_grow_amount, self.grass_max_amount - current_amount)
+
+        if amount_to_grow > 0:
+            # Randomly generate new grass positions
+            new_x = np.random.uniform(0, self.map_settings["map_width"], amount_to_grow)
+            new_y = np.random.uniform(0, self.map_settings["map_height"], amount_to_grow)
+            new_grass = np.stack((new_x, new_y), axis=1)
+
+            # Add the new grass to the existing array
+            if self.grass_positions.size > 0:
                 self.grass_positions = np.concatenate([self.grass_positions, new_grass], axis=0)
             else:
                 self.grass_positions = new_grass
                 
-        print(f"🌱 Grass refreshed. Total: {self.grass_positions.shape[0]}")
+            print(f"🌱 {amount_to_grow} grass grew. Total: {self.grass_positions.shape[0]}")

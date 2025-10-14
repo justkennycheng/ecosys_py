@@ -42,14 +42,16 @@ def main():
         # 绘制所有生物，并检查用户是否关闭了窗口
         # visualizer.draw的返回值会更新running变量
         running = visualizer.draw(rabbits, wolves, controller.grass_positions)
+        if not running:
+            break
 
         # 打印个体状态（调试用）
         for r in rabbits:
             sex = 'M' if r.ismale else 'F'
-            print(f"🐰 Rabbit id={r.o_id} gen={r.generation} {sex} state={r.state.name} | age={r.age:.1f}, speed={r.speed:.2f}, hunger={r.hunger:.1f}, energy={r.energy:.1f}")
+            print(f"🐰 Rabbit id={r.o_id} gen={r.generation} {sex} state={r.state.__class__.__name__} | age={r.age:.1f}, speed={r.speed:.2f}, hunger={r.hunger:.1f}, energy={r.energy:.1f}")
         for w in wolves:
             sex = 'M' if w.ismale else 'F'
-            print(f"🐺 Wolf  id={w.o_id} gen={w.generation} {sex} state={w.state.name} | age={w.age:.1f}, speed={w.speed:.2f}, hunger={w.hunger:.1f}, energy={w.energy:.1f}")
+            print(f"🐺 Wolf  id={w.o_id} gen={w.generation} {sex} state={w.state.__class__.__name__} | age={w.age:.1f}, speed={w.speed:.2f}, hunger={w.hunger:.1f}, energy={w.energy:.1f}")
 
         # 每帧结束：补足剩余时间，保持帧率稳定
         timer.end_frame()

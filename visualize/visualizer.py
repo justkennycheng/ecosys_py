@@ -22,9 +22,9 @@ BLUE = (0, 0, 255)  # 兔子
 GREEN = (0, 150, 0) # 草
 
 # --- 绘图常量 ---
-WOLF_RADIUS = 6
-RABBIT_RADIUS = 4
-GRASS_RADIUS = 2
+WOLF_RADIUS = 4
+RABBIT_RADIUS = 2
+GRASS_RADIUS = 1
 
 class Visualizer:
     """
@@ -32,7 +32,7 @@ class Visualizer:
     """
     def __init__(self):
         """初始化 Pygame、屏幕, 并计算缩放比例。"""
-        pygame.init()
+        pygame.init()   # pylint: disable=no-member
         self.screen = pygame.display.set_mode(SCREEN_SIZE)
         pygame.display.set_caption(TITLE)
         # 计算缩放因子，用于将模拟坐标映射到屏幕坐标
@@ -53,7 +53,7 @@ class Visualizer:
         """
         # 1. 处理 Pygame 事件（例如关闭窗口）
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+            if event.type == pygame.QUIT:   # pylint: disable=no-member
                 return False  # 发送信号给主循环，让其退出
 
         # 2. 用背景色填充屏幕
@@ -78,4 +78,4 @@ class Visualizer:
 
     def close(self):
         """关闭 Pygame 模块。"""
-        pygame.quit()
+        pygame.quit()   # pylint: disable=no-member

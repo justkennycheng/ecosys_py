@@ -3,17 +3,17 @@
 simulation:
   target_fps: 2
   simulation_speed: 1.0
-  total_duration: 3  # 仿真总时长（秒）
+  total_duration: 30  # 仿真总时长（秒）
 
 environment:
-  map_width: 200      #整数，0-200
-  map_height: 200
+  map_width: 400      #整数，0-200
+  map_height: 400
   screen_width: 800
   screen_height: 800
 
 population:
-  initial_rabbits: 10
-  initial_wolves: 3
+  initial_rabbits: 20
+  initial_wolves: 6
 
 rabbit:
   # === 兔子 (被捕食者) ===
@@ -82,6 +82,6 @@ wolf:
 grass:
   grass_value: 30.0
   max_amount: 300
-  refresh_interval: 10.0  #刷新草的时间间隔
-  grow_amount_per_refresh: 0.5   #每次刷新长出几个草。因为草是整数，必须要通过判断时间到达后长出整数个的方式长草。
+  refresh_interval: 1.0  #刷新草的时间间隔
+  grow_amount_per_refresh: 1   #每次刷新长出几个草。因为草是整数，必须要通过判断时间到达后长出整数个的方式长草。
 

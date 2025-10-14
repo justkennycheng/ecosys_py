@@ -6,6 +6,8 @@ class Rabbit(Organism):
     """introduction"""
     def __init__(self, settings):
         rabbit_settings = settings["rabbit"]
+        rabbit_settings["map_width"] = settings["environment"]["map_width"]
+        rabbit_settings["map_height"] = settings["environment"]["map_height"]
         super().__init__(rabbit_settings)
         self.preditor_level = 0     #0表示不是掠食者
         

@@ -6,6 +6,8 @@ class Wolf(Organism):
     """introduction"""
     def __init__(self, settings):
         wolf_settings = settings["wolf"]
+        wolf_settings["map_width"] = settings["environment"]["map_width"]
+        wolf_settings["map_height"] = settings["environment"]["map_height"]
         super().__init__(wolf_settings)
         self.preditor_level = 1     #1级掠食者
 

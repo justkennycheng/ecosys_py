@@ -1,7 +1,7 @@
 """Module providing a function printing python version."""
 import random
 import numpy as np
-from core.state import IdleState       #其他不需要ForagingState, FleeingState, RestingState, ReproducingState, DeadState
+from core.state import IdleState
 from utils import functions as func
 
 
@@ -14,8 +14,9 @@ class Organism:
         self.o_id = Organism._next_id
         Organism._next_id += 1
         # 实例属性,仅定义给具体实例
-        self.position = np.array([random.uniform(0, settings['map_width']),
-                                  random.uniform(0, settings['map_height'])])
+        self.map_width = settings['map_width']
+        self.map_height = settings['map_height']
+        self.position = np.array([random.uniform(0, self.map_width),random.uniform(0, self.map_height)])
         angle = random.uniform(0, 2 * np.pi)
         self.direction = np.array([np.cos(angle), np.sin(angle)])
         self.dt = 0.0
@@ -71,8 +72,8 @@ class Organism:
         self.energy_TH = self.max_energy * self.energy_desire      #能量阈值   energyThreshold = energyDesireThreshold_factor * currentEnergyUpperlimit
         self.givebirth_amount = func.calculate_peak_value(self.age, self.reproduce_age, self.life_time, 1, self.offspring_amount)
             #在当前繁殖的话能够出生的后代数量;使用了peak函数，但是程序机制在成年前不会繁殖所以可以使用这个函数。
-        self.energy = self.hunger_TH    #刚好用阈值初始化
-        self.hunger = self.energy_TH    #刚好用阈值初始化
+        self.energy = self.max_hunger    #刚好用阈值初始化
+        self.hunger = self.max_energy    #刚好用阈值初始化
 
     def tick(self, target_frame_time_v , all_organisms):
         """introduction"""
@@ -137,7 +138,7 @@ class Organism:
 
         # 边界检查 (简单的环绕效果)
         # 假设世界大小是 200x200
-        self.position = np.mod(self.position, 200)  #从一侧超出地图，则从另一侧出现
+        self.position = np.mod(self.position, [self.map_width, self.map_height])  #从一侧超出地图，则从另一侧出现
 
     def find_nearest_grass(self, grass_positions):
         """
