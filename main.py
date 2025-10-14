@@ -5,19 +5,21 @@ from utils.setting_loader import load_settings
 from utils.timer import SimulationTimer
 from core.controller import EcoController
 from core.init import InitManager
+from visualize.visualizer import Visualizer
 
 def main():
     """introduction"""
     settings = load_settings()  # 加载配置文件
 
-    timer = SimulationTimer(settings["simulation"]["target_fps"] , settings["simulation"]["simulation_speed"])
-
+    timer = SimulationTimer(settings["simulation"]["target_fps"]
+                            , settings["simulation"]["simulation_speed"])
     # 初始化种群（通过InitManager调用类方法）
     rabbits = InitManager.init_rabbits(settings)
     wolves = InitManager.init_wolves(settings)
 
     # 初始化控制器
     controller = EcoController()
+    visualizer = Visualizer()
 
     # 记录程序开始时间
     start_time = time.time()
@@ -35,6 +37,11 @@ def main():
 
         # 调度器更新生态系统状态
         controller.tick(target_frame_time_v, rabbits, wolves)  #更新生态系统状态
+
+        # --- 可视化步骤 ---
+        # 绘制所有生物，并检查用户是否关闭了窗口
+        # visualizer.draw的返回值会更新running变量
+        running = visualizer.draw(rabbits, wolves, controller.grass_positions)
 
         # 打印个体状态（调试用）
         for r in rabbits:
@@ -54,7 +61,9 @@ def main():
         if time.time() - start_time > settings["simulation"]["total_duration"]:  # 运行 到仿真时长后退出
             print(f"⏱️ 仿真已运行 {settings["simulation"]["total_duration"]} 秒，自动退出")
             break
-
+    
+    
+    visualizer.close()  # <-- 在程序结束时干净地关闭 Pygame
 
 if __name__ == "__main__":
     main()

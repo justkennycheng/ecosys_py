@@ -1,7 +1,7 @@
 """Module providing a function printing python version."""
 import random
 import numpy as np
-from core.state import IdleState, ForagingState, FleeingState, RestingState, ReproducingState, DeadState
+from core.state import IdleState       #其他不需要ForagingState, FleeingState, RestingState, ReproducingState, DeadState
 from utils import functions as func
 
 
@@ -14,7 +14,8 @@ class Organism:
         self.o_id = Organism._next_id
         Organism._next_id += 1
         # 实例属性,仅定义给具体实例
-        self.position = np.array([random.uniform(0, settings['map_width']), random.uniform(0, settings['map_height'])])
+        self.position = np.array([random.uniform(0, settings['map_width']),
+                                  random.uniform(0, settings['map_height'])])
         angle = random.uniform(0, 2 * np.pi)
         self.direction = np.array([np.cos(angle), np.sin(angle)])
         self.dt = 0.0
@@ -27,6 +28,7 @@ class Organism:
         self.death_age = None
         self.death_reason = None
         self.preditor_level = -1  # 捕食者等级,0表示非捕食者
+        self.species = None        #物种名称，如rabbit、wolf等
         #遗传属性
         self.reproduce_age = settings['init_reproduce_age']          #成熟年龄,秒。代替之前的的growrate
         self.hunger_desire = settings['init_hunger_desire']          #饱腹值的百分之多少开始去觅食
@@ -72,6 +74,26 @@ class Organism:
         self.energy = self.hunger_TH    #刚好用阈值初始化
         self.hunger = self.energy_TH    #刚好用阈值初始化
 
+    def tick(self, target_frame_time_v , all_organisms):
+        """introduction"""
+
+        #以后这里增加动态调整属性的代码
+
+        self.dt = target_frame_time_v  # 将时间增量存储起来，以便其他方法使用
+
+        self.age += target_frame_time_v
+        self.hunger -= target_frame_time_v * self.hunger_consume_rate
+        self.energy -= target_frame_time_v * self.energy_consume_rate
+        
+        # 状态机
+        new_state = self.state.execute(self, all_organisms)    #这个execute()必须返回值，或者返回新的状态对象，或者返回None表示状态不变。
+        if new_state is not None:
+            self.state.exit(self)
+            self.state = new_state
+            self.state.enter(self)
+
+    ###################################################################
+
     def if_needs_to_forage(self):
         """Checks if the organism's hunger is below its threshold."""
         return self.hunger < self.hunger_TH
@@ -91,11 +113,9 @@ class Organism:
             if other.preditor_level > self.preditor_level:
                 # 计算与捕食者之间的距离
                 distance = np.linalg.norm(self.position - other.position)
-
                 # 如果捕食者进入了视野范围，则视为威胁
                 if distance < self.vision_range:
                     return True
-
         # 没有发现威胁
         return False
 
@@ -119,24 +139,35 @@ class Organism:
         # 假设世界大小是 200x200
         self.position = np.mod(self.position, 200)  #从一侧超出地图，则从另一侧出现
 
+    def find_nearest_grass(self, grass_positions):
+        """
+        向量化计算与所有草地的距离，并找到最近的一块草地。
+        :param grass_positions: 形状为 (N, 2) 的 NumPy 数组，包含所有草地位置。
+        :return: 最近草地的位置 (np.array)
+        """
+        if grass_positions.size == 0:
+            return None
+        
+        # 1. 向量化减法：计算兔子位置与所有草地位置的差向量
+        #    结果是形状为 (N, 2) 的数组
+        #    self.position 是 (2,) 形状，NumPy 的广播机制自动处理
+        difference = grass_positions - self.position
+        # 2. 向量化求范数：计算每个差向量的欧几里得距离（L2 范数）
+        #    np.linalg.norm(..., axis=1) 对每一行（即每一个差向量）求范数
+        #    结果是形状为 (N,) 的距离数组
+        distances = np.linalg.norm(difference, axis=1)
+        # 3. 找到最小距离的索引
+        min_index = np.argmin(distances)
+        # 4. 根据索引获取最近草地的位置
+        nearest_grass_pos = grass_positions[min_index]
+        # 5. 可选：检查最近的草地是否在兔子的视野范围内
+        min_distance = distances[min_index]
+        if min_distance <= self.vision_range:
+            return nearest_grass_pos
+        else:
+            return None # 视野内没有草
 
 
-    def tick(self, target_frame_time_v , all_organisms):
-        """introduction"""
-
-        #以后这里增加动态调整属性的代码
-
-        self.dt = target_frame_time_v  # 将时间增量存储起来，以便其他方法使用
-
-        self.age += target_frame_time_v
-        self.hunger -= target_frame_time_v * self.hunger_consume_rate
-        self.energy -= target_frame_time_v * self.energy_consume_rate
-
-        # 状态机
-        new_state = self.state.execute(self, all_organisms)    #这个execute()必须返回值，或者返回新的状态对象，或者返回None表示状态不变。
-        if new_state is not None:
-            self.state.exit(self)
-            self.state = new_state
-            self.state.enter(self)
-
+        
+        
         ###

@@ -6,8 +6,10 @@ simulation:
   total_duration: 3  # 仿真总时长（秒）
 
 environment:
-  map_width: 200      #整数，-100到+100
+  map_width: 200      #整数，0-200
   map_height: 200
+  screen_width: 800
+  screen_height: 800
 
 population:
   initial_rabbits: 10
@@ -78,8 +80,8 @@ wolf:
   init_pregant_dur: 60.0        # 怀孕时长
 
 grass:
-  currentvalue: 30.0
+  grass_value: 30.0
   max_amount: 300
   refresh_interval: 10.0  #刷新草的时间间隔
-  grow_amount_per_refresh: 2   #每次刷新长出几个草。因为草是整数，必须要通过判断时间到达后长出整数个的方式长草。
+  grow_amount_per_refresh: 0.5   #每次刷新长出几个草。因为草是整数，必须要通过判断时间到达后长出整数个的方式长草。
 
