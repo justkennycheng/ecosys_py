@@ -24,10 +24,12 @@ class State:
 class IdleState(State):
     """
     生物空闲时的状态。根据生物的需求转换到其他状态。
+    需调整速度、耗能状态
+    没考虑又困又饿的情况，按说无论何时都应该觅食优先，因为累了就睡觉不会死。
     """
     def execute(self, agent , all_organisms):
-        # 饱腹度低的生物应该开始觅食
-        if agent.if_needs_to_forage():
+        # 饱腹度低的生物应该开始觅食。
+        if ( agent.if_needs_to_forage) :
             return ForagingState()
 
         # 能量低的生物应该开始休息
@@ -48,6 +50,9 @@ class IdleState(State):
 class ForagingState(State):
     """
     生物觅食时的状态。
+    需调整速度、耗能状态
+    要根据掠食者和食草动物进行区别，按照preditor_level
+    掠食者抓到下一级动物的成功几率与二者value（也代表体型）的差距有关。这部分算法放在那里？
     """
     def execute(self, agent, all_organisms):
         # 1. 安全第一：检查是否有天敌
@@ -63,7 +68,7 @@ class ForagingState(State):
         # 3. 寻找食物
         # food = agent.find_food()
         # if food:
-        #     pass # 走向食物
+        #     pass # 走向食物 
         # else:
         #     pass # 闲逛
         # 暂不实现
@@ -73,6 +78,7 @@ class ForagingState(State):
 class FleeingState(State):
     """
     生物逃跑时的状态。
+    需调整速度、耗能状态
     """
     def execute(self, agent, all_organisms):
         # 1. 找到最近的天敌
@@ -90,6 +96,7 @@ class FleeingState(State):
 class RestingState(State):
     """
     生物休息时的状态，用于恢复能量。
+    需调整速度、耗能状态
     """
     def execute(self, agent, all_organisms):
         # 1. 休息时也要警惕天敌
@@ -109,6 +116,8 @@ class RestingState(State):
 class ReproducingState(State):
     """
     生物繁殖时的状态。
+    需调整速度、耗能状态
+    交配成功后，雌性进入怀孕状态（后续增加怀孕状态及怀孕状态耗能）
     """
     def execute(self, agent, all_organisms):
         # 1. 繁殖时也要警惕天敌
@@ -131,5 +140,5 @@ class ReproducingState(State):
 class DeadState(State):
     """死亡状态的占位符"""
     def execute(self, agent, all_organisms):
-        # 死亡的生物什么也不做
+        # 将数据存到数据库中，然后销毁实例
         return None

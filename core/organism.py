@@ -85,6 +85,8 @@ class Organism:
         self.age += target_frame_time_v
         self.hunger -= target_frame_time_v * self.hunger_consume_rate
         self.energy -= target_frame_time_v * self.energy_consume_rate
+
+        #在这里增加是否饿死的代码
         
         # 状态机
         new_state = self.state.execute(self, all_organisms)    #这个execute()必须返回值，或者返回新的状态对象，或者返回None表示状态不变。
