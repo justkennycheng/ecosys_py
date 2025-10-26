@@ -31,8 +31,36 @@ class EcoController:
         # 更新所有生物个体
         for r in rabbits:
             r.tick(target_frame_time_v , all_organisms)
+            r.grass_positions = self.grass_positions    # 为食草动物更新草地位置,可以不用每次tick都更新
         for w in wolves:
             w.tick(target_frame_time_v , all_organisms)
+
+        # 处理被吃掉的食物
+        for r in rabbits:
+            if r.last_eaten_food is not None:
+                if r.last_eaten_food["food_type"] == "grass" and r.last_eaten_food["food_index"] is not None:
+                    # 移除被吃掉的草地
+                    self.grass_positions = np.delete(self.grass_positions, r.last_eaten_food["food_index"], axis=0)
+                # 重置最近吃掉的食物信息
+                r.last_eaten_food = None
+
+        for w in wolves:
+            if w.last_eaten_food is not None:
+                if w.last_eaten_food["food_type"] == "organism" and w.last_eaten_food["food_index"] is not None:
+                    # 移除被吃掉的猎物
+                    prey_index = w.last_eaten_food["food_index"]
+                    # 确保索引有效
+                    if 0 <= prey_index < len(all_organisms):
+                        prey = all_organisms[prey_index]
+                        # 从all_organisms列表中移除猎物
+                        all_organisms.remove(prey)
+                        # 从相应的类型列表中移除猎物
+                        if prey in rabbits:
+                            rabbits.remove(prey)
+                        elif prey in wolves:
+                            wolves.remove(prey)
+                # 重置最近吃掉的食物信息
+                w.last_eaten_food = None
 
     def refresh_grass(self):
         """

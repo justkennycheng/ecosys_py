@@ -13,12 +13,15 @@ def main():
 
     timer = SimulationTimer(settings["simulation"]["target_fps"]
                             , settings["simulation"]["simulation_speed"])
+
     # 初始化种群（通过InitManager调用类方法）
     rabbits = InitManager.init_rabbits(settings)
     wolves = InitManager.init_wolves(settings)
 
     # 初始化控制器
-    controller = EcoController()
+    controller = EcoController()    #草在这里初始化
+
+    # 初始化可视化器
     visualizer = Visualizer()
 
     # 记录程序开始时间

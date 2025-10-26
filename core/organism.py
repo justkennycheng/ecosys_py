@@ -16,6 +16,7 @@ class Organism:
         # 实例属性,仅定义给具体实例
         self.map_width = settings['map_width']
         self.map_height = settings['map_height']
+        self.grass_value = settings['grass_value']
         self.position = np.array([random.uniform(0, self.map_width),random.uniform(0, self.map_height)])
         angle = random.uniform(0, 2 * np.pi)
         self.direction = np.array([np.cos(angle), np.sin(angle)])
@@ -45,7 +46,6 @@ class Organism:
         self.flee_factor = settings['init_flee_factor']
         self.flee_speed_factor = settings['init_flee_speed_factor']
         self.pregant_dur = settings['init_pregant_dur']
-        #补全固定属性[避免向tick()传递settings]
         self.UL_life_time = settings['UL_life_time']
         self.LL_life_time = settings['LL_life_time']
         self.UL_hunger = settings['UL_hunger']
@@ -74,6 +74,8 @@ class Organism:
             #在当前繁殖的话能够出生的后代数量;使用了peak函数，但是程序机制在成年前不会繁殖所以可以使用这个函数。
         self.energy = self.max_hunger    #刚好用阈值初始化
         self.hunger = self.max_energy    #刚好用阈值初始化
+        self.grass_positions = None      #草地位置，由控制器定期更新
+        self.last_eaten_food = None      #最近吃掉的食物信息，用于控制器处理；食肉动物则不更新。
 
     def tick(self, target_frame_time_v , all_organisms):
         """introduction"""
@@ -87,7 +89,7 @@ class Organism:
         self.energy -= target_frame_time_v * self.energy_consume_rate
 
         #在这里增加是否饿死的代码
-        
+
         # 状态机
         new_state = self.state.execute(self, all_organisms)    #这个execute()必须返回值，或者返回新的状态对象，或者返回None表示状态不变。
         if new_state is not None:
@@ -96,14 +98,21 @@ class Organism:
             self.state.enter(self)
 
     ###################################################################
+    ###################################################################
+    ###################################################################
 
-    def if_needs_to_forage(self):
+
+    def if_hungry(self):
         """Checks if the organism's hunger is below its threshold."""
         return self.hunger < self.hunger_TH
 
-    def if_needs_to_rest(self):
+    def if_tired(self):
         """Checks if the organism's energy is below its threshold."""
         return self.energy < self.energy_TH
+
+    def is_full(self):
+        """Checks if the organism's hunger is above its maximum."""
+        return self.hunger >= self.max_hunger
 
     def if_treathen_detected(self, all_organisms):
         """
@@ -169,7 +178,104 @@ class Organism:
         else:
             return None # 视野内没有草
 
+    def find_food(self, all_organisms):
+        """
+        根据生物的preditor_level寻找最近的食物位置。
+        对于食草动物(preditor_level=0)，寻找最近的草地。
+        对于食肉动物(preditor_level>0)，寻找preditor_level比自己低的生物。
 
-        
-        
-        ###
+        :param all_organisms: 所有生物的列表
+        :return: 最近食物的位置坐标(np.array)，如果没有找到则返回None
+        """
+        # 如果是食草动物，寻找草地
+        if self.preditor_level == 0:
+            return self.find_nearest_grass(self.grass_positions)
+
+        # 如果是食肉动物，寻找比自己捕食者等级低的生物
+        if self.preditor_level > 0:
+            nearest_prey_position = None
+            min_distance = float('inf')
+
+            for organism in all_organisms:
+                # 跳过自己
+                if organism == self:
+                    continue
+
+                # 只寻找捕食者等级比自己低的生物
+                if organism.preditor_level < self.preditor_level:
+                    # 计算距离
+                    distance = np.linalg.norm(self.position - organism.position)
+
+                    # 如果在视野范围内且距离更近，则更新最近猎物位置
+                    if distance <= self.vision_range and distance < min_distance:
+                        min_distance = distance
+                        nearest_prey_position = organism.position
+
+            return nearest_prey_position
+
+        # 其他情况返回None
+        return None
+
+    def move_to_position(self, target_position):
+        """
+        向目标位置移动
+
+        :param target_position: 目标位置的坐标(np.array)
+        """
+        # 计算方向向量
+        direction = target_position - self.position
+        # 归一化方向向量
+        direction = direction / np.linalg.norm(direction)
+        # 更新生物的方向
+        self.direction = direction
+        # 向目标方向移动
+        self.position = self.position + self.direction * self.speed * self.dt
+        # 边界检查
+        self.position = np.mod(self.position, [self.map_width, self.map_height])
+
+    def eat_food(self, food_position, all_organisms=None):
+        """
+        吃掉食物
+
+        :param food_position: 食物位置的坐标
+        :param all_organisms: 所有生物的列表，用于查找被吃的猎物
+        :return: 字典，包含是否成功吃掉食物和被吃掉的食物信息
+        """
+        result = {"success": False, "food_type": None, "food_value": 0, "food_index": None}
+
+        # 定义进食范围，比搜寻范围小
+        eat_range = self.search_range * 0.2  # 进食范围是搜寻范围的20%
+
+        # 检查是否足够接近食物
+        if np.linalg.norm(food_position - self.position) < eat_range:
+            # 如果是食草动物，吃草
+            if self.preditor_level == 0:
+                # 从settings获取草地的价值
+
+                self.hunger = min(self.hunger + self.grass_value, self.max_hunger)  # 增加饱腹度
+                result["success"] = True
+                result["food_type"] = "grass"
+                result["food_value"] = self.grass_value
+                # 返回草地的索引，以便在controller中移除
+                if self.grass_positions is not None:
+                    for i, pos in enumerate(self.grass_positions):
+                        if np.array_equal(pos, food_position):
+                            result["food_index"] = i
+                            break
+            # 如果是食肉动物，吃猎物
+            elif self.preditor_level > 0 and all_organisms is not None:
+                # 查找被吃的猎物
+                for i, organism in enumerate(all_organisms):
+                    if organism.preditor_level < self.preditor_level and np.array_equal(organism.position, food_position):
+                        # 获取猎物的价值
+                        prey_value = organism.value
+                        self.hunger = min(self.hunger + prey_value, self.max_hunger)  # 增加饱腹度
+                        result["success"] = True
+                        result["food_type"] = "organism"
+                        result["food_value"] = prey_value
+                        result["food_index"] = i  # 返回猎物在列表中的索引
+                        break
+
+        return result
+
+

@@ -29,11 +29,11 @@ class IdleState(State):
     """
     def execute(self, agent , all_organisms):
         # 饱腹度低的生物应该开始觅食。
-        if agent.if_needs_to_forage():
+        if agent.if_hungry():
             return ForagingState()
 
         # 能量低的生物应该开始休息
-        if agent.if_needs_to_rest():
+        if agent.if_tired():
             return RestingState()
 
         #检查四周是否有威胁需要逃跑
@@ -51,27 +51,32 @@ class ForagingState(State):
     """
     生物觅食时的状态。
     需调整速度、耗能状态
-    要根据掠食者和食草动物进行区别，按照preditor_level
-    掠食者抓到下一级动物的成功几率与二者value（也代表体型）的差距有关。这部分算法放在那里？
+    要根据掠食者和食草动物进行区别,按照preditor_level
+    掠食者抓到下一级动物的成功几率与二者value(也代表体型)的差距有关。这部分算法放在那里？
     """
     def execute(self, agent, all_organisms):
-        # 1. 安全第一：检查是否有天敌
-        # if agent.is_predator_nearby():
-        #     return FleeingState()
-        # 暂不实现
+        # 1. 检查是否有天敌
+        if agent.if_treathen_detected(all_organisms):
+            return FleeingState()
 
-        # 2. 检查是否吃饱
-        # if agent.is_full():
-        #     return IdleState()
-        # 暂不实现
+        # 2. 检查是否不饿
+        if not agent.if_hungry():   #如果不饿了就不吃(注意，只是不饿了就停止进食。不饿的时候可能会有动物主动进化阈值来实现。)
+            return IdleState()
 
         # 3. 寻找食物
-        # food = agent.find_food()
-        # if food:
-        #     pass # 走向食物 
-        # else:
-        #     pass # 闲逛
-        # 暂不实现
+        food_position = agent.find_food(all_organisms)
+        if food_position is not None:
+            # 如果找到食物，走向食物
+            agent.move_to_position(food_position)
+            # 尝试吃掉食物
+            eat_result = agent.eat_food(food_position, all_organisms)
+
+            # 如果成功吃掉食物，将结果存储在agent中，以便controller处理
+            if eat_result["success"]:
+                agent.last_eaten_food = eat_result
+        else:
+            # 如果没有找到食物，随机闲逛
+            agent.wander()
 
         return None # 暂时保持觅食状态
 
