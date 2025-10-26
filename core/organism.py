@@ -139,7 +139,6 @@ class Organism:
         self.position = self.position + self.direction * self.speed * self.dt
 
         # 边界检查 (简单的环绕效果)
-        # 假设世界大小是 200x200
         self.position = np.mod(self.position, [self.map_width, self.map_height])  #从一侧超出地图，则从另一侧出现
 
     def find_nearest_grass(self, grass_positions):

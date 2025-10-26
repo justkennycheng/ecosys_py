@@ -5,6 +5,9 @@ from utils.setting_loader import load_settings
 class EcoController:
     """introduction"""
     def __init__(self):
+        """
+        初始化函数，用于设置初始参数和加载配置
+        """
         settings = load_settings()  # 加载配置文件
         self.map_settings = settings["environment"]
         self.grass_timer = 0.0
@@ -13,7 +16,7 @@ class EcoController:
         self.grass_grow_amount = settings["grass"]["grow_amount_per_refresh"]
         self.grass_value = settings["grass"]["grass_value"]
         self.grass_positions = np.array([]) # 初始化一个空的 (0, 2) 形状数组
-        self.refresh_grass()  #模拟世界的逻辑宽度        #更新草
+        self.refresh_grass()  #更新草
 
     def tick(self, target_frame_time_v, rabbits, wolves):
         """introduction"""
@@ -22,7 +25,7 @@ class EcoController:
         # 更新草
         self.grass_timer += target_frame_time_v
         if self.grass_timer >= self.grass_refresh_interval:
-            self.refresh_grass()
+            self.refresh_grass()    # 更新草
             self.grass_timer = 0.0
 
         # 更新所有生物个体

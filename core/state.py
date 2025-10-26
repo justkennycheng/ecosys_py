@@ -29,7 +29,7 @@ class IdleState(State):
     """
     def execute(self, agent , all_organisms):
         # 饱腹度低的生物应该开始觅食。
-        if ( agent.if_needs_to_forage) :
+        if agent.if_needs_to_forage():
             return ForagingState()
 
         # 能量低的生物应该开始休息
